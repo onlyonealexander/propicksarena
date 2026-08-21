@@ -56,11 +56,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a {
-  color: var(--color-accent);
-}
-a:hover {
-  color: var(--color-accent-strong);
+@layer base {
+  a {
+    color: var(--color-accent);
+  }
+  a:hover {
+    color: var(--color-accent-strong);
+  }
 }
 
 ::-webkit-scrollbar {

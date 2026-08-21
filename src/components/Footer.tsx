@@ -96,7 +96,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
       <div className="border-t border-border-subtle">
         <div className="max-w-[1400px] w-full mx-auto px-6 md:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span className="text-[11px] text-text-tertiary text-center sm:text-left">
-            &copy; {new Date().getFullYear()} Propicks Arena. Demo platform — 18+ only.
+            &copy; {new Date().getFullYear()} Propicks Arena. 18+ only.
           </span>
           <span className="text-[11px] text-text-tertiary">Please bet responsibly.</span>
         </div>
