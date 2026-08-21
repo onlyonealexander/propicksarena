@@ -1,26 +1,93 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-bg: oklch(0.16 0.014 260);
+  --color-surface: oklch(0.205 0.016 260);
+  --color-surface-2: oklch(0.245 0.018 260);
+  --color-sidebar: oklch(0.13 0.012 260);
+  --color-border: oklch(0.32 0.02 260);
+  --color-border-subtle: oklch(0.27 0.018 260);
+  --color-text: oklch(0.96 0.006 260);
+  --color-text-secondary: oklch(0.74 0.014 260);
+  --color-text-tertiary: oklch(0.54 0.012 260);
+  --color-accent: oklch(0.72 0.135 195);
+  --color-accent-strong: oklch(0.6 0.15 195);
+  --color-accent-fg: oklch(0.16 0.01 260);
+  --color-positive: oklch(0.72 0.15 155);
+  --color-negative: oklch(0.66 0.19 25);
+  --color-warning: oklch(0.79 0.15 80);
+  --color-live: oklch(0.66 0.2 27);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-sidebar: var(--color-sidebar);
+  --color-border: var(--color-border);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-text: var(--color-text);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary: var(--color-text-tertiary);
+  --color-accent: var(--color-accent);
+  --color-accent-strong: var(--color-accent-strong);
+  --color-accent-fg: var(--color-accent-fg);
+  --color-positive: var(--color-positive);
+  --color-negative: var(--color-negative);
+  --color-warning: var(--color-warning);
+  --color-live: var(--color-live);
+
+  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-body: var(--font-manrope), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-accent);
+}
+a:hover {
+  color: var(--color-accent-strong);
+}
+
+::-webkit-scrollbar {
+  height: 7px;
+  width: 7px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-display);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

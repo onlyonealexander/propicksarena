@@ -1,0 +1,54 @@
+// `symbol` only changes the displayed currency symbol/format — the
+// underlying ledger is one set of numbers, there's no real FX conversion.
+export function money(n: number, symbol: string = "₦"): string {
+  const sign = n < 0 ? "-" : "";
+  return `${sign}${symbol}${Math.abs(n).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+export function signedMoney(n: number, symbol: string = "₦"): string {
+  return `${n < 0 ? "-" : "+"}${money(Math.abs(n), symbol)}`;
+}
+
+export function initials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+export function relativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hr${hrs > 1 ? "s" : ""} ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days} day${days > 1 ? "s" : ""} ago`;
+}
+
+export function dateTime(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function kickoffLabel(iso: string): { date: string; time: string } {
+  const d = new Date(iso);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const tomorrow = new Date(now.getTime() + 86400000);
+  const isTomorrow = d.toDateString() === tomorrow.toDateString();
+  const date = isToday ? "Today" : isTomorrow ? "Tomorrow" : d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+  const time = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  return { date, time };
+}
