@@ -15,8 +15,21 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://propicksarena.com"),
   title: "Propicks Arena",
   description: "A premium sportsbook platform demo — public betting site and admin operations console.",
+  openGraph: {
+    title: "Propicks Arena",
+    description: "Real fixtures. Real settlement. Bet with confidence.",
+    url: "https://propicksarena.com",
+    siteName: "Propicks Arena",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Propicks Arena",
+    description: "Real fixtures. Real settlement. Bet with confidence.",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
