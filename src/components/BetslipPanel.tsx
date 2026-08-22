@@ -2,10 +2,13 @@
 
 import { useBetslip, selectionKey } from "./BetslipProvider";
 import { money } from "@/lib/format";
+import { MIN_STAKE } from "@/lib/betting";
 
 export function BetslipPanel({ onClose }: { onClose?: () => void }) {
   const { selections, remove, clear, stake, setStake, totalOdds, potentialWin, count, status, message, confirm, currencySymbol } = useBetslip();
   const list = Object.entries(selections);
+  const stakeNum = parseFloat(stake) || 0;
+  const belowMin = stakeNum > 0 && stakeNum < MIN_STAKE;
 
   return (
     <aside
@@ -88,8 +91,11 @@ export function BetslipPanel({ onClose }: { onClose?: () => void }) {
               <span className="nums text-[14px] font-extrabold text-accent">{totalOdds.toFixed(2)}</span>
             </div>
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11.5px] text-text-tertiary font-semibold">Stake</span>
-              <div className="flex items-center gap-2 px-3 rounded-lg border border-border bg-bg">
+              <div className="flex items-center justify-between">
+                <span className="text-[11.5px] text-text-tertiary font-semibold">Stake</span>
+                <span className="text-[10.5px] text-text-tertiary">Min {money(MIN_STAKE, currencySymbol)}</span>
+              </div>
+              <div className={`flex items-center gap-2 px-3 rounded-lg border bg-bg ${belowMin ? "border-negative" : "border-border"}`}>
                 <span className="text-[14px] text-text-tertiary font-bold">{currencySymbol}</span>
                 <input
                   value={stake}
@@ -105,7 +111,7 @@ export function BetslipPanel({ onClose }: { onClose?: () => void }) {
             </div>
             <button
               onClick={confirm}
-              disabled={status === "submitting"}
+              disabled={status === "submitting" || stakeNum < MIN_STAKE}
               className="w-full py-3.5 rounded-lg bg-accent text-accent-fg font-extrabold text-sm disabled:opacity-60"
             >
               {status === "submitting" ? "Placing…" : "Confirm Bet"}

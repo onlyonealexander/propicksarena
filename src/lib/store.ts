@@ -20,6 +20,7 @@ import { hashPassword, verifyPassword } from "./passwords";
 import { detectCurrencyFromPhone, DEFAULT_CURRENCY } from "./currencies";
 import { money } from "./format";
 import { computeWithdrawalFee } from "./fees";
+import { MIN_STAKE } from "./betting";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "store.json");
@@ -884,10 +885,14 @@ export async function listBets(userId?: string): Promise<Bet[]> {
 export async function placeBet(userId: string, selections: Selection[], stake: number): Promise<Bet> {
   if (selections.length === 0) throw new Error("No selections");
   if (stake <= 0) throw new Error("Invalid stake");
+  const store = await read();
+  const userForStake = store.users.find((u) => u.id === userId);
+  if (stake < MIN_STAKE) {
+    throw new Error(`Minimum stake is ${money(MIN_STAKE, userForStake?.currencySymbol ?? DEFAULT_CURRENCY.symbol)}`);
+  }
   const { available } = await getBalances(userId);
   if (stake > available) throw new Error("Insufficient available balance");
 
-  const store = await read();
   for (const s of selections) {
     if (s.matchId.startsWith("SPECIAL-")) {
       const market = store.customMarkets.find((m) => m.id === s.matchId);
@@ -901,7 +906,7 @@ export async function placeBet(userId: string, selections: Selection[], stake: n
 
   const totalOdds = round2(selections.reduce((acc, s) => acc * s.odds, 1));
   const potentialPayout = round2(totalOdds * stake);
-  const user = store.users.find((u) => u.id === userId);
+  const user = userForStake;
   const currencyCode = user?.currencyCode ?? DEFAULT_CURRENCY.currencyCode;
   const currencySymbol = user?.currencySymbol ?? DEFAULT_CURRENCY.symbol;
   const bet: Bet = {

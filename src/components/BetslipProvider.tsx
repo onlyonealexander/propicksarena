@@ -3,6 +3,8 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
+import { MIN_STAKE } from "@/lib/betting";
+import { money } from "@/lib/format";
 
 export type SelectionInput = {
   matchId: string;
@@ -41,7 +43,7 @@ export function selectionKey(matchId: string, pick: string) {
 export function BetslipProvider({ children, currencySymbol = DEFAULT_CURRENCY.symbol }: { children: React.ReactNode; currencySymbol?: string }) {
   const router = useRouter();
   const [selections, setSelections] = useState<Record<string, SelectionInput>>({});
-  const [stake, setStake] = useState("25");
+  const [stake, setStake] = useState(String(MIN_STAKE));
   const [status, setStatus] = useState<BetslipState["status"]>("idle");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -76,7 +78,12 @@ export function BetslipProvider({ children, currencySymbol = DEFAULT_CURRENCY.sy
   const potentialWin = totalOdds * stakeNum;
 
   const confirm = useCallback(async () => {
-    if (list.length === 0 || stakeNum <= 0) return;
+    if (list.length === 0) return;
+    if (stakeNum < MIN_STAKE) {
+      setStatus("error");
+      setMessage(`Minimum stake is ${money(MIN_STAKE, currencySymbol)}`);
+      return;
+    }
     setStatus("submitting");
     setMessage(null);
     try {
@@ -110,7 +117,7 @@ export function BetslipProvider({ children, currencySymbol = DEFAULT_CURRENCY.sy
       setStatus("error");
       setMessage("Network error — please try again");
     }
-  }, [list, stakeNum, router]);
+  }, [list, stakeNum, router, currencySymbol]);
 
   const value = useMemo<BetslipContextValue>(
     () => ({
