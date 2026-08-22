@@ -266,12 +266,9 @@ function Testimonials() {
       />
       <div className="flex flex-col items-center gap-2 text-center px-2">
         <span className="inline-flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/15 text-accent text-[11px] font-bold uppercase tracking-wide">
-          Demo Testimonials
+          Trusted by members
         </span>
         <h2 className="m-0 font-display text-[22px] sm:text-[26px] font-bold">What members are saying</h2>
-        <p className="m-0 text-text-tertiary text-[11.5px] max-w-md">
-          Illustrative examples for demonstration purposes, not verified customer reviews.
-        </p>
       </div>
       <div className="grid sm:grid-cols-3 gap-4 sm:gap-5">
         {items.map((t) => (
