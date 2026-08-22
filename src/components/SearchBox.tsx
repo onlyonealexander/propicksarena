@@ -60,7 +60,7 @@ export function SearchBox() {
       </button>
 
       {open && (
-        <div className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[64px] sm:top-11 w-auto sm:w-[320px] max-w-full max-h-[min(400px,calc(100vh-84px))] flex flex-col rounded-2xl border border-border bg-surface shadow-[0_12px_32px_rgba(0,0,0,0.5)] overflow-hidden z-50">
+        <div className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[64px] sm:top-11 w-auto sm:w-[320px] max-h-[min(400px,calc(100vh-84px))] flex flex-col rounded-2xl border border-border bg-surface shadow-[0_12px_32px_rgba(0,0,0,0.5)] overflow-hidden z-50">
           <div className="p-2.5 border-b border-border-subtle flex-shrink-0">
             <input
               ref={inputRef}
