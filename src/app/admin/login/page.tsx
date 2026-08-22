@@ -49,11 +49,6 @@ export default async function AdminLoginPage({ searchParams }: PageProps<"/admin
           {hasError && <span className="text-xs text-negative font-semibold">Invalid username or password.</span>}
           <button className="w-full py-3.5 rounded-lg bg-accent text-accent-fg font-extrabold text-sm mt-1">Sign In</button>
         </form>
-
-        <div className="flex flex-col gap-1 text-[11px] text-text-tertiary border-t border-border-subtle pt-4">
-          <span className="font-bold text-text-secondary">Admin login</span>
-          <span>admin / pro123</span>
-        </div>
       </div>
     </div>
   );
