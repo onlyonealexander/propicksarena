@@ -5,54 +5,17 @@ import { useRouter } from "next/navigation";
 import type { PaymentMethod } from "@/lib/store";
 import { money } from "@/lib/format";
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
+import { METHOD_ICON } from "./paymentMethodIcons";
+import { useHumanVerification, HumanVerificationCard } from "./HumanVerification";
 
 const CHIPS = [1000, 5000, 10000, 50000];
-
-const METHOD_ICON: Record<string, React.ReactNode> = {
-  bitcoin: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M7 4v16M11 4v16M6 8h9a3 3 0 0 1 0 6H6M6 14h10a3 3 0 0 1 0 6H6" />
-    </svg>
-  ),
-  usdt: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M8 8h8M12 8v3M9 13.5c0 1.4 1.5 2.5 3.4 2.5.9 0 1.6-.2 2.1-.6M12 11c-2.2 0-4 .8-4 1.8s1.8 1.8 4 1.8 4-.8 4-1.8-1.8-1.8-4-1.8Z" />
-    </svg>
-  ),
-  paypal: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M7 18h2.5l1-6.5H14a4 4 0 0 0 0-8H8L5 18" />
-      <path d="M10 11.5h3.5a4 4 0 0 0 0-8" opacity="0.5" />
-    </svg>
-  ),
-  skrill: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M8 15c1 1 2 1.2 3.5 1.2 2 0 3-.7 3-1.8 0-2.6-6-1-6-4.2 0-1.4 1.5-2.2 3.3-2.2 1.3 0 2.2.3 3.2 1" />
-    </svg>
-  ),
-  revolut: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M7 18V6h5a3.5 3.5 0 0 1 0 7H9M13 13l4 5" />
-    </svg>
-  ),
-};
-
-function randomChallenge() {
-  const a = 2 + Math.floor(Math.random() * 8);
-  const b = 2 + Math.floor(Math.random() * 8);
-  return { a, b };
-}
 
 export function DepositFlow({ methods, currencySymbol = DEFAULT_CURRENCY.symbol }: { methods: PaymentMethod[]; currencySymbol?: string }) {
   const router = useRouter();
   const [step, setStep] = useState<"amount" | "method" | "verify" | "instructions">("amount");
   const [amount, setAmount] = useState("5000");
   const [selectedKey, setSelectedKey] = useState<string | null>(methods[0]?.key ?? null);
-  const [challenge, setChallenge] = useState(randomChallenge);
-  const [captchaInput, setCaptchaInput] = useState("");
-  const [captchaError, setCaptchaError] = useState<string | null>(null);
+  const verification = useHumanVerification();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ reference: string; amount: number } | null>(null);
@@ -68,20 +31,13 @@ export function DepositFlow({ methods, currencySymbol = DEFAULT_CURRENCY.symbol 
 
   function goToVerify() {
     if (!selected) return;
-    setChallenge(randomChallenge());
-    setCaptchaInput("");
-    setCaptchaError(null);
+    verification.reset();
     setStep("verify");
   }
 
   async function confirmVerification() {
     if (!selected) return;
-    if (parseInt(captchaInput, 10) !== challenge.a + challenge.b) {
-      setCaptchaError("That's not quite right — try again.");
-      setChallenge(randomChallenge());
-      setCaptchaInput("");
-      return;
-    }
+    if (!verification.verify()) return;
     setBusy(true);
     setError(null);
     const res = await fetch("/api/wallet/deposit", {
@@ -109,7 +65,7 @@ export function DepositFlow({ methods, currencySymbol = DEFAULT_CURRENCY.symbol 
   const progress = useMemo(() => (step === "amount" ? 1 : step === "method" ? 2 : step === "verify" ? 3 : 4), [step]);
 
   return (
-    <div className="flex flex-col gap-[18px] p-6 rounded-2xl bg-surface border border-border-subtle">
+    <div className="min-w-0 flex flex-col gap-[18px] p-6 rounded-2xl bg-surface border border-border-subtle">
       <div className="flex items-center gap-2">
         {["Amount", "Method", "Verify", "Transfer"].map((label, i) => (
           <div key={label} className="flex items-center gap-2 flex-1">
@@ -202,23 +158,7 @@ export function DepositFlow({ methods, currencySymbol = DEFAULT_CURRENCY.symbol 
 
       {step === "verify" && (
         <>
-          <span className="text-sm font-bold">Quick human check</span>
-          <p className="m-0 text-[12.5px] text-text-tertiary leading-relaxed">
-            Just confirming there&rsquo;s a person on the other end before we generate your transfer reference.
-          </p>
-          <div className="flex flex-col gap-2 p-4 rounded-lg bg-surface-2 border border-border-subtle">
-            <span className="text-[11.5px] text-text-tertiary font-semibold">
-              What is {challenge.a} + {challenge.b}?
-            </span>
-            <input
-              value={captchaInput}
-              onChange={(e) => setCaptchaInput(e.target.value.replace(/[^0-9]/g, ""))}
-              inputMode="numeric"
-              autoFocus
-              className="px-3.5 py-3 rounded-lg border border-border bg-bg text-text text-lg font-bold font-display outline-none focus:border-accent"
-            />
-          </div>
-          {captchaError && <span className="text-xs text-negative font-semibold">{captchaError}</span>}
+          <HumanVerificationCard challenge={verification.challenge} input={verification.input} onChange={verification.setInput} error={verification.error} />
           {error && <span className="text-xs text-negative font-semibold">{error}</span>}
           <div className="flex gap-2.5">
             <button onClick={() => setStep("method")} className="flex-1 py-3 rounded-lg border border-border text-[13px] font-semibold">
@@ -226,7 +166,7 @@ export function DepositFlow({ methods, currencySymbol = DEFAULT_CURRENCY.symbol 
             </button>
             <button
               onClick={confirmVerification}
-              disabled={busy || captchaInput === ""}
+              disabled={busy || verification.input === ""}
               className="flex-1 py-3 rounded-lg bg-accent text-accent-fg font-extrabold text-[13px] disabled:opacity-50"
             >
               {busy ? "Verifying…" : "Verify & Continue"}

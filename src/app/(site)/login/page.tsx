@@ -1,28 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { setCurrentUserId } from "@/lib/auth";
-import { verifyCredentials, addAudit } from "@/lib/store";
 import { Logo } from "@/components/Logo";
+import { LoginForm } from "@/components/LoginForm";
 
 const AUTH_IMAGE = "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=2000&q=70&fm=jpg&fit=crop";
 
-async function login(formData: FormData) {
-  "use server";
-  const identifier = String(formData.get("identifier") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-  const next = String(formData.get("next") ?? "/");
-  const user = await verifyCredentials(identifier, password);
-  if (!user) {
-    redirect(`/login?error=1&next=${encodeURIComponent(next)}`);
-  }
-  await setCurrentUserId(user.id);
-  await addAudit({ actor: user.name, action: "Signed in", target: "Propicks Arena", category: "Login" });
-  redirect(next && next.startsWith("/") ? next : "/");
-}
-
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const params = await searchParams;
-  const hasError = params.error === "1";
   const next = typeof params.next === "string" ? params.next : "/";
 
   return (
@@ -44,7 +27,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       </div>
 
       <div
-        className="flex-1 flex items-center justify-center px-6 py-16 relative overflow-hidden"
+        className="flex-1 flex items-center justify-center px-5 sm:px-6 py-8 sm:py-12 relative overflow-hidden"
         style={{
           backgroundImage:
             "radial-gradient(circle at 15% 20%, oklch(0.7 0.15 145 / 0.08), transparent 40%), radial-gradient(circle at 85% 80%, oklch(0.7 0.15 145 / 0.06), transparent 45%)",
@@ -64,19 +47,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             <h1 className="m-0 font-display text-xl font-bold">Welcome back</h1>
             <p className="m-0 text-[12.5px] text-text-tertiary text-center">Sign in to Propicks Arena to place bets and manage your wallet.</p>
           </div>
-          <form action={login} className="flex flex-col gap-3.5">
-            <input type="hidden" name="next" value={next} />
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11.5px] text-text-tertiary font-semibold">Username or Email</label>
-              <input name="identifier" required autoFocus className="px-3.5 py-3 rounded-lg border border-border bg-surface-2 text-[13px] outline-none focus:border-accent" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11.5px] text-text-tertiary font-semibold">Password</label>
-              <input name="password" type="password" required className="px-3.5 py-3 rounded-lg border border-border bg-surface-2 text-[13px] outline-none focus:border-accent" />
-            </div>
-            {hasError && <span className="text-xs text-negative font-semibold">Incorrect username/email or password.</span>}
-            <button className="w-full py-3.5 rounded-lg bg-accent text-accent-fg font-extrabold text-sm mt-1">Log In</button>
-          </form>
+          <LoginForm next={next} />
           <p className="m-0 text-center text-[12.5px] text-text-secondary">
             New here?{" "}
             <Link href="/signup" className="font-bold text-accent">

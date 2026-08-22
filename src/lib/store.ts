@@ -19,6 +19,7 @@ import { getMatchById, pickResult } from "./sportsdata";
 import { hashPassword, verifyPassword } from "./passwords";
 import { detectCurrencyFromPhone, DEFAULT_CURRENCY } from "./currencies";
 import { money } from "./format";
+import { computeWithdrawalFee } from "./fees";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "store.json");
@@ -41,6 +42,10 @@ export type Transaction = {
   reference: string;
   method?: string;
   destination?: string;
+  // Withdrawals only — which of the five payout rails the user chose, and
+  // the fee charged in this transaction's own currency (0 for non-withdrawals).
+  payoutMethod?: PaymentMethodKey;
+  fee: number;
   createdAt: string;
   processedBy?: string;
 };
@@ -153,6 +158,9 @@ export type PaymentMethod = {
   network?: string; // e.g. "TRC20" for USDT, "BTC" for Bitcoin
   instructions: string;
   enabled: boolean;
+  // Withdrawal fee charged when a user pays out through this method.
+  feeType: "flat" | "percent";
+  feeValue: number;
 };
 
 export type SiteSettings = {
@@ -221,9 +229,9 @@ function seed(): Store {
       { id: "u5", name: "Kelechi Nwosu", username: "kelechi.n", email: "kelechi.n@email.com", phone: "+234 807 887 1129", passwordHash: demoHash, registeredAt: iso(14), status: "Pending Verification", country: "Nigeria", currencyCode: "NGN", currencySymbol: "₦" },
     ],
     transactions: [
-      { id: "TXN-10001", userId: DEMO_USER_ID, type: "Deposit", amount: 50000, currencyCode: "NGN", currencySymbol: "₦", status: "Successful", reference: "DEP-A1B2C3", method: "Bank Transfer", createdAt: iso(9) },
-      { id: "TXN-10002", userId: DEMO_USER_ID, type: "Deposit", amount: 200000, currencyCode: "NGN", currencySymbol: "₦", status: "Successful", reference: "DEP-D4E5F6", method: "Bank Transfer", createdAt: iso(6) },
-      { id: "TXN-10003", userId: DEMO_USER_ID, type: "Withdrawal", amount: -30000, currencyCode: "NGN", currencySymbol: "₦", status: "Rejected", reference: "WD-1A2B3C", destination: "GTBank •••• 4821", createdAt: iso(4) },
+      { id: "TXN-10001", userId: DEMO_USER_ID, type: "Deposit", amount: 50000, currencyCode: "NGN", currencySymbol: "₦", fee: 0, status: "Successful", reference: "DEP-A1B2C3", method: "Bank Transfer", createdAt: iso(9) },
+      { id: "TXN-10002", userId: DEMO_USER_ID, type: "Deposit", amount: 200000, currencyCode: "NGN", currencySymbol: "₦", fee: 0, status: "Successful", reference: "DEP-D4E5F6", method: "Bank Transfer", createdAt: iso(6) },
+      { id: "TXN-10003", userId: DEMO_USER_ID, type: "Withdrawal", amount: -30000, currencyCode: "NGN", currencySymbol: "₦", fee: 0, status: "Rejected", reference: "WD-1A2B3C", destination: "GTBank •••• 4821", createdAt: iso(4) },
     ],
     bets: [],
     marketOverrides: {},
@@ -240,6 +248,8 @@ function seed(): Store {
         network: "BTC",
         instructions: "Send exactly this amount in BTC to the address above, then paste your transaction hash as the reference.",
         enabled: true,
+        feeType: "percent",
+        feeValue: 1,
       },
       {
         key: "usdt",
@@ -248,6 +258,8 @@ function seed(): Store {
         network: "TRC20",
         instructions: "Send USDT (TRC20 network only) to the address above, then paste your transaction hash as the reference.",
         enabled: true,
+        feeType: "percent",
+        feeValue: 0.5,
       },
       {
         key: "paypal",
@@ -255,6 +267,8 @@ function seed(): Store {
         details: "payments@propicksarena.com",
         instructions: "Send as Friends & Family to the PayPal email above, then use your reference code as the note.",
         enabled: true,
+        feeType: "percent",
+        feeValue: 2.5,
       },
       {
         key: "skrill",
@@ -262,6 +276,8 @@ function seed(): Store {
         details: "payments@propicksarena.com",
         instructions: "Send to the Skrill email above and use your reference code as the payment note.",
         enabled: true,
+        feeType: "percent",
+        feeValue: 2.5,
       },
       {
         key: "revolut",
@@ -269,6 +285,8 @@ function seed(): Store {
         details: "@propicksarena",
         instructions: "Send to the Revolut tag above and include your reference code in the payment message.",
         enabled: true,
+        feeType: "percent",
+        feeValue: 1.5,
       },
     ],
     supportMessages: [],
@@ -342,6 +360,17 @@ function backfill(parsed: Partial<Store>): Store {
       const c = currencyFor(b.userId);
       b.currencyCode = c.code;
       b.currencySymbol = c.symbol;
+    }
+  }
+  for (const t of parsed.transactions ?? []) {
+    if (t.fee === undefined || t.fee === null) t.fee = 0;
+  }
+  const seedMethodsByKey = new Map(seed().paymentMethods.map((m) => [m.key, m]));
+  for (const m of parsed.paymentMethods ?? []) {
+    if (!m.feeType || m.feeValue === undefined) {
+      const fallback = seedMethodsByKey.get(m.key);
+      m.feeType = fallback?.feeType ?? "percent";
+      m.feeValue = fallback?.feeValue ?? 1.5;
     }
   }
   return parsed as Store;
@@ -638,6 +667,7 @@ export async function requestDeposit(userId: string, amount: number, method: str
     amount,
     currencyCode: user?.currencyCode ?? DEFAULT_CURRENCY.currencyCode,
     currencySymbol: user?.currencySymbol ?? DEFAULT_CURRENCY.symbol,
+    fee: 0,
     status: "Pending",
     reference: genRef("DEP"),
     method,
@@ -656,18 +686,28 @@ export async function requestDeposit(userId: string, amount: number, method: str
   return tx;
 }
 
-export async function requestWithdrawal(userId: string, amount: number, destination: string) {
+export async function requestWithdrawal(userId: string, input: { amount: number; method: PaymentMethodKey; destination: string }) {
+  const { amount, method, destination } = input;
   const { available } = await getBalances(userId);
   if (amount > available) throw new Error("Insufficient available balance");
   const store = await read();
   const user = store.users.find((u) => u.id === userId);
+  const pm = store.paymentMethods.find((m) => m.key === method);
+  if (!pm || !pm.enabled) throw new Error("That payout method isn't available right now");
+  if (!destination.trim()) throw new Error("Enter your payment details for the selected method");
+
+  const fee = computeWithdrawalFee(amount, pm);
+  const currencyCode = user?.currencyCode ?? DEFAULT_CURRENCY.currencyCode;
+  const currencySymbol = user?.currencySymbol ?? DEFAULT_CURRENCY.symbol;
   const tx: Transaction = {
     id: genId("TXN"),
     userId,
     type: "Withdrawal",
     amount: -amount,
-    currencyCode: user?.currencyCode ?? DEFAULT_CURRENCY.currencyCode,
-    currencySymbol: user?.currencySymbol ?? DEFAULT_CURRENCY.symbol,
+    currencyCode,
+    currencySymbol,
+    fee,
+    payoutMethod: method,
     status: "Pending",
     reference: genRef("WD"),
     destination,
@@ -680,9 +720,15 @@ export async function requestWithdrawal(userId: string, amount: number, destinat
     action: "Requested withdrawal",
     target: user?.name ?? userId,
     category: "Withdrawals",
-    next: `status: pending, amount: ${money(amount, tx.currencySymbol)}`,
+    next: `status: pending, amount: ${money(amount, currencySymbol)}, fee: ${money(fee, currencySymbol)}, method: ${pm.label}`,
     reference: tx.reference,
   });
+  await pushNotification(
+    userId,
+    `Your ${money(amount, currencySymbol)} ${pm.label} withdrawal has been submitted.`,
+    "Withdrawals",
+    "/wallet"
+  );
   return tx;
 }
 
@@ -706,6 +752,8 @@ export async function adminReviewTransaction(txId: string, decision: "approve" |
   });
   const approved = decision === "approve";
   const amountLabel = money(Math.abs(tx.amount), tx.currencySymbol);
+  const methodLabel = tx.payoutMethod ? store.paymentMethods.find((m) => m.key === tx.payoutMethod)?.label : undefined;
+  const withdrawalLabel = methodLabel ? `${amountLabel} ${methodLabel}` : amountLabel;
   await pushNotification(
     tx.userId,
     tx.type === "Deposit"
@@ -713,8 +761,8 @@ export async function adminReviewTransaction(txId: string, decision: "approve" |
         ? `Your deposit of ${amountLabel} was confirmed and added to your balance.`
         : `Your deposit of ${amountLabel} could not be confirmed — contact support if you already sent it.`
       : approved
-        ? `Your withdrawal of ${amountLabel} was approved and sent.`
-        : `Your withdrawal of ${amountLabel} was rejected — contact support for details.`,
+        ? `Your ${withdrawalLabel} withdrawal was approved and sent.`
+        : `Your ${withdrawalLabel} withdrawal was rejected — contact support for details.`,
     tx.type === "Deposit" ? "Deposits" : "Withdrawals",
     "/wallet"
   );
@@ -877,6 +925,7 @@ export async function placeBet(userId: string, selections: Selection[], stake: n
     amount: -stake,
     currencyCode,
     currencySymbol,
+    fee: 0,
     status: "Successful",
     reference: bet.id,
     createdAt: new Date().toISOString(),
@@ -948,6 +997,7 @@ export async function settleFinishedBets(actor = "System"): Promise<{ settled: n
         amount: bet.potentialPayout,
         currencyCode: bet.currencyCode,
         currencySymbol: bet.currencySymbol,
+        fee: 0,
         status: "Successful",
         reference: bet.id,
         createdAt: new Date().toISOString(),

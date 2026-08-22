@@ -19,13 +19,18 @@ export async function POST(request: Request, ctx: RouteContext<"/api/admin/payme
   const network = body?.network ? String(body.network).trim() : undefined;
   const instructions = String(body?.instructions ?? "").trim();
   const enabled = Boolean(body?.enabled);
+  const feeType = body?.feeType === "flat" ? "flat" : "percent";
+  const feeValue = Number(body?.feeValue);
 
   if (!label || !details) {
     return NextResponse.json({ error: "Label and account details are required" }, { status: 400 });
   }
+  if (!Number.isFinite(feeValue) || feeValue < 0) {
+    return NextResponse.json({ error: "Enter a valid withdrawal fee" }, { status: 400 });
+  }
 
   try {
-    await setPaymentMethod(key as PaymentMethodKey, { label, details, network, instructions, enabled }, admin.name);
+    await setPaymentMethod(key as PaymentMethodKey, { label, details, network, instructions, enabled, feeType, feeValue }, admin.name);
     return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Could not update payment method";

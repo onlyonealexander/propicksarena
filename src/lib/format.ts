@@ -17,6 +17,24 @@ export function signedMoney(n: number, symbol: string = DEFAULT_CURRENCY.symbol)
   return `${n < 0 ? "-" : "+"}${money(Math.abs(n), symbol)}`;
 }
 
+// Masks a wallet address / tag / account identifier for on-screen review —
+// keeps just enough of each end to be recognizable, hides the rest.
+export function maskDestination(value: string): string {
+  const v = value.trim();
+  if (v.length <= 3) return "*".repeat(v.length || 1);
+  return `${v.slice(0, 1)}${"*".repeat(4)}${v.slice(-2)}`;
+}
+
+export function maskEmail(value: string): string {
+  const v = value.trim();
+  const at = v.indexOf("@");
+  if (at <= 0) return maskDestination(v);
+  const local = v.slice(0, at);
+  const domain = v.slice(at);
+  const visible = local.slice(0, Math.min(2, local.length));
+  return `${visible}${"*".repeat(3)}${domain}`;
+}
+
 export function initials(name: string): string {
   return name
     .split(" ")

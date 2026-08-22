@@ -15,9 +15,16 @@ export async function getCurrentUser(): Promise<User | null> {
   return (await getUser(id)) ?? null;
 }
 
-export async function setCurrentUserId(id: string) {
+export async function setCurrentUserId(id: string, remember: boolean = true) {
   const store = await cookies();
-  store.set(USER_COOKIE, id, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
+  // "Remember me" unchecked → a session cookie (no maxAge) that clears when
+  // the browser closes, instead of persisting for 30 days.
+  store.set(USER_COOKIE, id, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    ...(remember ? { maxAge: 60 * 60 * 24 * 30 } : {}),
+  });
 }
 
 export async function clearCurrentUserId() {

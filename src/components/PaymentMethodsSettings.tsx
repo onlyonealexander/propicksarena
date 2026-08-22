@@ -29,6 +29,8 @@ function MethodRow({ method, open, onToggle }: { method: PaymentMethod; open: bo
   const [network, setNetwork] = useState(method.network ?? "");
   const [instructions, setInstructions] = useState(method.instructions);
   const [enabled, setEnabled] = useState(method.enabled);
+  const [feeType, setFeeType] = useState(method.feeType);
+  const [feeValue, setFeeValue] = useState(String(method.feeValue));
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -38,7 +40,7 @@ function MethodRow({ method, open, onToggle }: { method: PaymentMethod; open: bo
     await fetch(`/api/admin/payment-methods/${method.key}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ label, details, network: network || undefined, instructions, enabled }),
+      body: JSON.stringify({ label, details, network: network || undefined, instructions, enabled, feeType, feeValue: parseFloat(feeValue) || 0 }),
     });
     setBusy(false);
     setSaved(true);
@@ -74,6 +76,20 @@ function MethodRow({ method, open, onToggle }: { method: PaymentMethod; open: bo
             <Field label="Network (optional)" value={network} onChange={setNetwork} />
           </div>
           <Field label={method.key === "bitcoin" || method.key === "usdt" ? "Wallet Address" : "Account / Handle"} value={details} onChange={setDetails} mono />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] text-text-tertiary font-semibold">Withdrawal Fee Type</label>
+              <select
+                value={feeType}
+                onChange={(e) => setFeeType(e.target.value as "flat" | "percent")}
+                className="px-3 py-2.5 rounded-lg border border-border bg-surface-2 text-[12.5px] outline-none focus:border-accent"
+              >
+                <option value="percent">Percent of amount</option>
+                <option value="flat">Flat amount</option>
+              </select>
+            </div>
+            <Field label={feeType === "percent" ? "Fee (%)" : "Fee (flat amount)"} value={feeValue} onChange={setFeeValue} mono />
+          </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] text-text-tertiary font-semibold">Instructions shown to users</label>
             <textarea
