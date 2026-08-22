@@ -74,20 +74,20 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-11 w-auto sm:w-[320px] rounded-2xl border border-border bg-surface shadow-[0_12px_32px_rgba(0,0,0,0.5)] overflow-hidden z-50">
-          <div className="px-4 py-3 border-b border-border-subtle">
+        <div className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[64px] sm:top-11 w-auto sm:w-[340px] max-w-full max-h-[min(420px,calc(100vh-84px))] flex flex-col rounded-2xl border border-border bg-surface shadow-[0_12px_32px_rgba(0,0,0,0.5)] overflow-hidden z-50">
+          <div className="px-4 py-3 border-b border-border-subtle flex-shrink-0">
             <span className="text-[13px] font-bold">Notifications</span>
           </div>
-          <div className="max-h-[360px] overflow-y-auto">
-            {notifications.length === 0 && <div className="px-4 py-8 text-center text-[12.5px] text-text-tertiary">You&rsquo;re all caught up.</div>}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden divide-y divide-border-subtle">
+            {notifications.length === 0 && <div className="px-4 py-10 text-center text-[12.5px] text-text-tertiary">You&rsquo;re all caught up.</div>}
             {notifications.map((n) => (
               <button
                 key={n.id}
                 onClick={() => go(n.href)}
-                className="w-full flex flex-col items-start gap-1 px-4 py-3 text-left hover:bg-surface-2 border-t border-border-subtle first:border-t-0"
+                className="w-full flex flex-col items-start gap-1.5 px-4 py-3.5 text-left hover:bg-surface-2"
               >
-                <span className="text-[12.5px] leading-snug">{n.message}</span>
-                <span className="text-[10.5px] text-text-tertiary">
+                <span className="text-[12.5px] leading-snug break-words">{n.message}</span>
+                <span className="flex items-center gap-1.5 text-[10.5px] text-text-tertiary whitespace-nowrap">
                   {n.category} &middot; {timeAgo(n.createdAt)}
                 </span>
               </button>

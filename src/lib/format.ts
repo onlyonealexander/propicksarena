@@ -1,6 +1,11 @@
-// `symbol` only changes the displayed currency symbol/format — the
-// underlying ledger is one set of numbers, there's no real FX conversion.
-export function money(n: number, symbol: string = "₦"): string {
+import { DEFAULT_CURRENCY } from "./currencies";
+
+// `symbol` should always come from the specific account/transaction being
+// displayed — see lib/currencies.ts. The default here only covers the rare
+// case of rendering an amount with no currency context at all (e.g. a
+// logged-out shell), and intentionally reuses the platform's single named
+// default rather than a symbol hardcoded again at each call site.
+export function money(n: number, symbol: string = DEFAULT_CURRENCY.symbol): string {
   const sign = n < 0 ? "-" : "";
   return `${sign}${symbol}${Math.abs(n).toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -8,7 +13,7 @@ export function money(n: number, symbol: string = "₦"): string {
   })}`;
 }
 
-export function signedMoney(n: number, symbol: string = "₦"): string {
+export function signedMoney(n: number, symbol: string = DEFAULT_CURRENCY.symbol): string {
   return `${n < 0 ? "-" : "+"}${money(Math.abs(n), symbol)}`;
 }
 

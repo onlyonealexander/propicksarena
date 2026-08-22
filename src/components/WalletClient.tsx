@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Transaction, PaymentMethod } from "@/lib/store";
 import { StatusBadge } from "./StatusBadge";
 import { money, signedMoney, dateTime } from "@/lib/format";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { DepositFlow } from "./DepositFlow";
 
 const FILTERS = ["All", "Pending", "Processing", "Successful", "Rejected", "Reversed"] as const;
@@ -13,7 +14,7 @@ export function WalletClient({
   transactions,
   available,
   methods,
-  currencySymbol = "₦",
+  currencySymbol = DEFAULT_CURRENCY.symbol,
 }: {
   transactions: Transaction[];
   available: number;
@@ -170,42 +171,65 @@ export function WalletClient({
               </button>
             ))}
           </div>
-          <div className="rounded-2xl border border-border-subtle bg-surface overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  {["Transaction ID", "Date/Time", "Type", "Amount", "Status", "Reference"].map((h) => (
-                    <th key={h} className="text-left text-[10.5px] font-bold text-text-tertiary uppercase tracking-wide px-3.5 pb-2.5 whitespace-nowrap">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
+          {filtered.length === 0 ? (
+            <div className="rounded-2xl border border-border-subtle bg-surface px-3.5 py-8 text-center text-text-tertiary text-[13px]">
+              No transactions match this filter.
+            </div>
+          ) : (
+            <>
+              {/* mobile: card list */}
+              <div className="flex flex-col gap-2.5 sm:hidden">
                 {filtered.map((t) => (
-                  <tr key={t.id} className="border-t border-border-subtle">
-                    <td className="nums px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{t.id}</td>
-                    <td className="px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{dateTime(t.createdAt)}</td>
-                    <td className="px-3.5 py-3 text-[12.5px] font-semibold whitespace-nowrap">{t.type}</td>
-                    <td className={`nums px-3.5 py-3 text-[12.5px] font-bold whitespace-nowrap ${t.amount < 0 ? "text-text" : "text-positive"}`}>
-                      {signedMoney(t.amount, currencySymbol)}
-                    </td>
-                    <td className="px-3.5 py-3">
+                  <div key={t.id} className="flex flex-col gap-2 p-3.5 rounded-xl border border-border-subtle bg-surface">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-[13px] font-semibold">{t.type}</span>
+                        <span className="text-[11px] text-text-tertiary">{dateTime(t.createdAt)}</span>
+                      </div>
+                      <span className={`nums text-[14px] font-bold whitespace-nowrap flex-shrink-0 ${t.amount < 0 ? "text-text" : "text-positive"}`}>
+                        {signedMoney(t.amount, t.currencySymbol)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-border-subtle">
+                      <span className="nums text-[11px] text-text-tertiary truncate">{t.reference}</span>
                       <StatusBadge status={t.status} />
-                    </td>
-                    <td className="nums px-3.5 py-3 text-[11.5px] text-text-tertiary whitespace-nowrap">{t.reference}</td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-3.5 py-8 text-center text-text-tertiary text-[13px]">
-                      No transactions match this filter.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              </div>
+
+              {/* desktop: table */}
+              <div className="hidden sm:block rounded-2xl border border-border-subtle bg-surface overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      {["Transaction ID", "Date/Time", "Type", "Amount", "Status", "Reference"].map((h) => (
+                        <th key={h} className="text-left text-[10.5px] font-bold text-text-tertiary uppercase tracking-wide px-3.5 pb-2.5 whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((t) => (
+                      <tr key={t.id} className="border-t border-border-subtle">
+                        <td className="nums px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{t.id}</td>
+                        <td className="px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{dateTime(t.createdAt)}</td>
+                        <td className="px-3.5 py-3 text-[12.5px] font-semibold whitespace-nowrap">{t.type}</td>
+                        <td className={`nums px-3.5 py-3 text-[12.5px] font-bold whitespace-nowrap ${t.amount < 0 ? "text-text" : "text-positive"}`}>
+                          {signedMoney(t.amount, t.currencySymbol)}
+                        </td>
+                        <td className="px-3.5 py-3">
+                          <StatusBadge status={t.status} />
+                        </td>
+                        <td className="nums px-3.5 py-3 text-[11.5px] text-text-tertiary whitespace-nowrap">{t.reference}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

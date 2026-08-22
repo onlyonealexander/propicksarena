@@ -6,6 +6,7 @@ import { Logo } from "./Logo";
 import { SearchBox } from "./SearchBox";
 import { NotificationBell } from "./NotificationBell";
 import { initials, money } from "@/lib/format";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -18,7 +19,7 @@ const NAV = [
 export function Header({
   userName,
   available,
-  currencySymbol = "₦",
+  currencySymbol = DEFAULT_CURRENCY.symbol,
 }: {
   userName: string | null;
   available: number;
@@ -69,10 +70,10 @@ export function Header({
               <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 md:pl-3 md:border-l md:border-border-subtle">
                 <Link
                   href="/wallet"
-                  className="flex flex-col items-end gap-px px-2 md:px-3 py-1.5 rounded-lg bg-surface border border-border-subtle max-w-[92px] sm:max-w-none"
+                  className="flex flex-col items-end gap-px px-2 md:px-3 py-1.5 rounded-lg bg-surface border border-border-subtle max-w-[112px] sm:max-w-none"
                 >
                   <span className="hidden sm:block text-[10px] text-text-tertiary font-semibold uppercase tracking-wide">Balance</span>
-                  <span className="nums text-[11.5px] md:text-[14px] font-bold whitespace-nowrap truncate">{money(available, currencySymbol)}</span>
+                  <span className="nums text-[11px] min-[380px]:text-[11.5px] md:text-[14px] font-bold whitespace-nowrap truncate max-w-full">{money(available, currencySymbol)}</span>
                 </Link>
                 <Link
                   href="/account"

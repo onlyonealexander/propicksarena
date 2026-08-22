@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PaymentMethod } from "@/lib/store";
 import { money } from "@/lib/format";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 
 const CHIPS = [1000, 5000, 10000, 50000];
 
@@ -44,7 +45,7 @@ function randomChallenge() {
   return { a, b };
 }
 
-export function DepositFlow({ methods, currencySymbol = "₦" }: { methods: PaymentMethod[]; currencySymbol?: string }) {
+export function DepositFlow({ methods, currencySymbol = DEFAULT_CURRENCY.symbol }: { methods: PaymentMethod[]; currencySymbol?: string }) {
   const router = useRouter();
   const [step, setStep] = useState<"amount" | "method" | "verify" | "instructions">("amount");
   const [amount, setAmount] = useState("5000");
@@ -140,12 +141,12 @@ export function DepositFlow({ methods, currencySymbol = "₦" }: { methods: Paym
               />
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {CHIPS.map((c) => (
               <button
                 key={c}
                 onClick={() => setAmount(String(c))}
-                className="flex-1 py-2.5 rounded-lg border border-border-subtle bg-surface-2 text-[12.5px] font-bold"
+                className="flex-1 min-w-[72px] py-2.5 rounded-lg border border-border-subtle bg-surface-2 text-[11.5px] sm:text-[12.5px] font-bold whitespace-nowrap"
               >
                 {currencySymbol}
                 {c.toLocaleString()}

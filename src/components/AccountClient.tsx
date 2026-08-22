@@ -62,7 +62,8 @@ const NAV: { key: Section; label: string; icon: React.ReactNode }[] = [
 
 const BET_FILTERS = ["All", "Pending", "Won", "Lost", "Cancelled", "Void", "Refunded"] as const;
 
-function payout(b: Bet, symbol: string): { label: string; color: string } {
+function payout(b: Bet): { label: string; color: string } {
+  const symbol = b.currencySymbol;
   if (b.status === "Won") return { label: money(b.potentialPayout, symbol), color: "text-positive" };
   if (b.status === "Lost") return { label: `-${money(b.stake, symbol)}`, color: "text-negative" };
   if (b.status === "Pending") return { label: `Potential ${money(b.potentialPayout, symbol)}`, color: "text-text-secondary" };
@@ -171,14 +172,14 @@ export function AccountClient({
       <main className="flex flex-col gap-6 min-w-0">
         {section === "Overview" && (
           <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-              <div className="flex flex-col gap-1.5 p-[18px] rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.03_195)] to-[oklch(0.19_0.02_250)] border border-border-subtle">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
+              <div className="flex flex-col gap-1.5 p-3.5 sm:p-[18px] rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.03_195)] to-[oklch(0.19_0.02_250)] border border-border-subtle min-w-0">
                 <span className="text-[11px] text-text-secondary font-semibold">Available Balance</span>
-                <span className="nums text-[22px] font-bold">{money(balances.available, user.currencySymbol)}</span>
+                <span className="nums text-lg sm:text-[22px] font-bold truncate">{money(balances.available, user.currencySymbol)}</span>
               </div>
-              <div className="flex flex-col gap-1.5 p-[18px] rounded-2xl bg-surface border border-border-subtle">
+              <div className="flex flex-col gap-1.5 p-3.5 sm:p-[18px] rounded-2xl bg-surface border border-border-subtle min-w-0">
                 <span className="text-[11px] text-text-tertiary font-semibold">Pending Balance</span>
-                <span className="nums text-xl font-bold text-warning">{money(balances.pending, user.currencySymbol)}</span>
+                <span className="nums text-lg sm:text-xl font-bold text-warning truncate">{money(balances.pending, user.currencySymbol)}</span>
               </div>
               <div className="flex flex-col gap-1.5 p-[18px] rounded-2xl bg-surface border border-border-subtle">
                 <span className="text-[11px] text-text-tertiary font-semibold">Open Bets</span>
@@ -198,7 +199,7 @@ export function AccountClient({
               </div>
               <div className="rounded-2xl border border-border-subtle bg-surface overflow-hidden">
                 {bets.slice(0, 5).map((b) => {
-                  const p = payout(b, user.currencySymbol);
+                  const p = payout(b);
                   return (
                     <div key={b.id} className="flex items-center gap-4 px-[18px] py-3.5 border-t border-border-subtle first:border-t-0">
                       <StatusBadge status={b.status} />
@@ -206,7 +207,7 @@ export function AccountClient({
                         <span className="text-[12.5px] font-semibold truncate">{b.selections.map((s) => s.matchLabel).join(", ")}</span>
                         <span className="text-[11px] text-text-tertiary truncate">{b.selections.map((s) => s.label).join(" + ")}</span>
                       </div>
-                      <span className="nums text-xs text-text-tertiary flex-shrink-0 hidden sm:inline">Stake {money(b.stake, user.currencySymbol)}</span>
+                      <span className="nums text-xs text-text-tertiary flex-shrink-0 hidden sm:inline">Stake {money(b.stake, b.currencySymbol)}</span>
                       <span className={`nums text-[13px] font-bold flex-shrink-0 ${p.color}`}>{p.label}</span>
                     </div>
                   );
@@ -232,76 +233,135 @@ export function AccountClient({
                 </button>
               ))}
             </div>
-            <div className="rounded-2xl border border-border-subtle bg-surface overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    {["Bet ID", "Match", "Selection", "Stake", "Odds", "Payout", "Status", "Date"].map((h) => (
-                      <th key={h} className="text-left text-[10.5px] font-bold text-text-tertiary uppercase tracking-wide px-3.5 pb-2.5 whitespace-nowrap">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
+            {filteredBets.length === 0 ? (
+              <div className="rounded-2xl border border-border-subtle bg-surface px-3.5 py-8 text-center text-text-tertiary text-[13px]">
+                No bets match this filter.
+              </div>
+            ) : (
+              <>
+                {/* mobile: card list */}
+                <div className="flex flex-col gap-2.5 sm:hidden">
                   {filteredBets.map((b) => {
-                    const p = payout(b, user.currencySymbol);
+                    const p = payout(b);
                     return (
-                      <tr key={b.id} className="border-t border-border-subtle">
-                        <td className="nums px-3.5 py-3 text-[12px] text-text-secondary whitespace-nowrap">{b.id}</td>
-                        <td className="px-3.5 py-3 text-[12.5px] font-semibold whitespace-nowrap">{b.selections.map((s) => s.matchLabel).join(", ")}</td>
-                        <td className="px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{b.selections.map((s) => s.label).join(" + ")}</td>
-                        <td className="nums px-3.5 py-3 text-[12.5px] whitespace-nowrap">{money(b.stake, user.currencySymbol)}</td>
-                        <td className="nums px-3.5 py-3 text-[12.5px] whitespace-nowrap">{b.totalOdds.toFixed(2)}</td>
-                        <td className={`nums px-3.5 py-3 text-[12.5px] font-bold whitespace-nowrap ${p.color}`}>{p.label}</td>
-                        <td className="px-3.5 py-3">
+                      <div key={b.id} className="flex flex-col gap-2 p-3.5 rounded-xl border border-border-subtle bg-surface">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className="text-[12.5px] font-semibold break-words">{b.selections.map((s) => s.matchLabel).join(", ")}</span>
+                            <span className="text-[11px] text-text-tertiary break-words">{b.selections.map((s) => s.label).join(" + ")}</span>
+                          </div>
                           <StatusBadge status={b.status} />
-                        </td>
-                        <td className="px-3.5 py-3 text-[12px] text-text-tertiary whitespace-nowrap">{dateTime(b.placedAt)}</td>
-                      </tr>
+                        </div>
+                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-border-subtle">
+                          <span className="text-[11px] text-text-tertiary">
+                            Stake {money(b.stake, b.currencySymbol)} &middot; Odds {b.totalOdds.toFixed(2)}
+                          </span>
+                          <span className={`nums text-[13px] font-bold flex-shrink-0 ${p.color}`}>{p.label}</span>
+                        </div>
+                        <span className="text-[10.5px] text-text-tertiary">{dateTime(b.placedAt)}</span>
+                      </div>
                     );
                   })}
-                  {filteredBets.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="px-3.5 py-8 text-center text-text-tertiary text-[13px]">
-                        No bets match this filter.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                </div>
+
+                {/* desktop: table */}
+                <div className="hidden sm:block rounded-2xl border border-border-subtle bg-surface overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        {["Bet ID", "Match", "Selection", "Stake", "Odds", "Payout", "Status", "Date"].map((h) => (
+                          <th key={h} className="text-left text-[10.5px] font-bold text-text-tertiary uppercase tracking-wide px-3.5 pb-2.5 whitespace-nowrap">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredBets.map((b) => {
+                        const p = payout(b);
+                        return (
+                          <tr key={b.id} className="border-t border-border-subtle">
+                            <td className="nums px-3.5 py-3 text-[12px] text-text-secondary whitespace-nowrap">{b.id}</td>
+                            <td className="px-3.5 py-3 text-[12.5px] font-semibold whitespace-nowrap">{b.selections.map((s) => s.matchLabel).join(", ")}</td>
+                            <td className="px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{b.selections.map((s) => s.label).join(" + ")}</td>
+                            <td className="nums px-3.5 py-3 text-[12.5px] whitespace-nowrap">{money(b.stake, b.currencySymbol)}</td>
+                            <td className="nums px-3.5 py-3 text-[12.5px] whitespace-nowrap">{b.totalOdds.toFixed(2)}</td>
+                            <td className={`nums px-3.5 py-3 text-[12.5px] font-bold whitespace-nowrap ${p.color}`}>{p.label}</td>
+                            <td className="px-3.5 py-3">
+                              <StatusBadge status={b.status} />
+                            </td>
+                            <td className="px-3.5 py-3 text-[12px] text-text-tertiary whitespace-nowrap">{dateTime(b.placedAt)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
         )}
 
         {section === "Transactions" && (
-          <div className="rounded-2xl border border-border-subtle bg-surface overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  {["Transaction ID", "Date/Time", "Type", "Amount", "Status", "Reference"].map((h) => (
-                    <th key={h} className="text-left text-[10.5px] font-bold text-text-tertiary uppercase tracking-wide px-3.5 pb-2.5 whitespace-nowrap">
-                      {h}
-                    </th>
+          <>
+            {transactions.length === 0 ? (
+              <div className="rounded-2xl border border-border-subtle bg-surface px-3.5 py-8 text-center text-text-tertiary text-[13px]">
+                No transactions yet.
+              </div>
+            ) : (
+              <>
+                {/* mobile: card list */}
+                <div className="flex flex-col gap-2.5 sm:hidden">
+                  {transactions.map((t) => (
+                    <div key={t.id} className="flex flex-col gap-2 p-3.5 rounded-xl border border-border-subtle bg-surface">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <span className="text-[13px] font-semibold">{t.type}</span>
+                          <span className="text-[11px] text-text-tertiary">{dateTime(t.createdAt)}</span>
+                        </div>
+                        <span className={`nums text-[14px] font-bold whitespace-nowrap flex-shrink-0 ${t.amount < 0 ? "text-text" : "text-positive"}`}>
+                          {signedMoney(t.amount, t.currencySymbol)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border-subtle">
+                        <span className="nums text-[11px] text-text-tertiary truncate">{t.reference}</span>
+                        <StatusBadge status={t.status} />
+                      </div>
+                    </div>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((t) => (
-                  <tr key={t.id} className="border-t border-border-subtle">
-                    <td className="nums px-3.5 py-3 text-[12px] text-text-secondary whitespace-nowrap">{t.id}</td>
-                    <td className="px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{dateTime(t.createdAt)}</td>
-                    <td className="px-3.5 py-3 text-[12.5px] font-semibold whitespace-nowrap">{t.type}</td>
-                    <td className={`nums px-3.5 py-3 text-[12.5px] font-bold whitespace-nowrap ${t.amount < 0 ? "text-text" : "text-positive"}`}>{signedMoney(t.amount, user.currencySymbol)}</td>
-                    <td className="px-3.5 py-3">
-                      <StatusBadge status={t.status} />
-                    </td>
-                    <td className="nums px-3.5 py-3 text-[11.5px] text-text-tertiary whitespace-nowrap">{t.reference}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </div>
+
+                {/* desktop: table */}
+                <div className="hidden sm:block rounded-2xl border border-border-subtle bg-surface overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        {["Transaction ID", "Date/Time", "Type", "Amount", "Status", "Reference"].map((h) => (
+                          <th key={h} className="text-left text-[10.5px] font-bold text-text-tertiary uppercase tracking-wide px-3.5 pb-2.5 whitespace-nowrap">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transactions.map((t) => (
+                        <tr key={t.id} className="border-t border-border-subtle">
+                          <td className="nums px-3.5 py-3 text-[12px] text-text-secondary whitespace-nowrap">{t.id}</td>
+                          <td className="px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{dateTime(t.createdAt)}</td>
+                          <td className="px-3.5 py-3 text-[12.5px] font-semibold whitespace-nowrap">{t.type}</td>
+                          <td className={`nums px-3.5 py-3 text-[12.5px] font-bold whitespace-nowrap ${t.amount < 0 ? "text-text" : "text-positive"}`}>{signedMoney(t.amount, t.currencySymbol)}</td>
+                          <td className="px-3.5 py-3">
+                            <StatusBadge status={t.status} />
+                          </td>
+                          <td className="nums px-3.5 py-3 text-[11.5px] text-text-tertiary whitespace-nowrap">{t.reference}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </>
         )}
 
         {section === "Profile" && (

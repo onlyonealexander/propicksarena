@@ -37,15 +37,15 @@ export function Footer({ settings }: { settings: SiteSettings }) {
 
   return (
     <footer className="w-full border-t border-border-subtle bg-sidebar mt-12">
-      <div className="max-w-[1400px] w-full mx-auto px-6 md:px-8 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
-        <div className="col-span-2 md:col-span-1 flex flex-col gap-3">
+      <div className="max-w-[1400px] w-full mx-auto px-5 sm:px-6 md:px-8 py-10 md:py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-center sm:text-left">
+        <div className="sm:col-span-2 md:col-span-1 flex flex-col items-center sm:items-start gap-3">
           <div className="flex items-center gap-2">
             <Logo size={26} />
             <span className="font-display font-bold text-[15px]">
               PROPICKS<span className="text-accent"> ARENA</span>
             </span>
           </div>
-          <p className="m-0 text-[12px] text-text-tertiary leading-relaxed max-w-[220px]">
+          <p className="m-0 text-[12px] text-text-tertiary leading-relaxed max-w-[260px] sm:max-w-[220px]">
             Real fixtures, real settlement, no games with your balance. Bet responsibly.
           </p>
           {socialEntries.length > 0 && (
@@ -66,7 +66,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
           )}
         </div>
 
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col items-center sm:items-start gap-2.5">
           <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wide">Platform</span>
           <FooterLink href="/">Home</FooterLink>
           <FooterLink href="/?sport=football#sports">Sports</FooterLink>
@@ -74,28 +74,28 @@ export function Footer({ settings }: { settings: SiteSettings }) {
           <FooterLink href="/account?tab=history">My Bets</FooterLink>
         </div>
 
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col items-center sm:items-start gap-2.5">
           <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wide">Support</span>
           <FooterLink href="/contact">Contact Us</FooterLink>
           <FooterLink href="/signup">Create Account</FooterLink>
           <FooterLink href="/login">Log In</FooterLink>
         </div>
 
-        <div className="flex flex-col gap-2.5">
+        <div className="sm:col-span-2 md:col-span-1 flex flex-col items-center sm:items-start gap-2.5">
           <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wide">Get in Touch</span>
-          <a href={`mailto:${settings.supportEmail}`} className="text-[12.5px] text-text-secondary hover:text-accent break-all">
+          <a href={`mailto:${settings.supportEmail}`} className="text-[12.5px] text-text-secondary hover:text-accent break-all max-w-full">
             {settings.supportEmail}
           </a>
           <a href={`tel:${settings.supportPhone.replace(/\s/g, "")}`} className="text-[12.5px] text-text-secondary hover:text-accent">
             {settings.supportPhone}
           </a>
-          <span className="text-[12px] text-text-tertiary leading-relaxed">{settings.address}</span>
+          <span className="text-[12px] text-text-tertiary leading-relaxed max-w-[260px] sm:max-w-none">{settings.address}</span>
         </div>
       </div>
 
       <div className="border-t border-border-subtle">
-        <div className="max-w-[1400px] w-full mx-auto px-6 md:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span className="text-[11px] text-text-tertiary text-center sm:text-left">
+        <div className="max-w-[1400px] w-full mx-auto px-5 sm:px-6 md:px-8 py-5 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-2 sm:gap-3 text-center">
+          <span className="text-[11px] text-text-tertiary">
             &copy; {new Date().getFullYear()} Propicks Arena. 18+ only.
           </span>
           <span className="text-[11px] text-text-tertiary">Please bet responsibly.</span>

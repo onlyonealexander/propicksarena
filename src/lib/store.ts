@@ -17,7 +17,8 @@ import path from "node:path";
 import { sql } from "@vercel/postgres";
 import { getMatchById, pickResult } from "./sportsdata";
 import { hashPassword, verifyPassword } from "./passwords";
-import { detectCurrencyFromPhone } from "./currencies";
+import { detectCurrencyFromPhone, DEFAULT_CURRENCY } from "./currencies";
+import { money } from "./format";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "store.json");
@@ -30,6 +31,12 @@ export type Transaction = {
   userId: string;
   type: TxType;
   amount: number; // signed: credits positive, debits negative
+  // The currency this specific transaction was made in — captured at the
+  // moment of creation and never recomputed. A user's account currency can
+  // change later (or be re-derived), but a transaction's own currency must
+  // stay exactly what it was when the money actually moved.
+  currencyCode: string;
+  currencySymbol: string;
   status: TxStatus;
   reference: string;
   method?: string;
@@ -72,6 +79,10 @@ export type Bet = {
   stake: number;
   totalOdds: number;
   potentialPayout: number;
+  // Same immutability rule as Transaction.currencyCode/currencySymbol —
+  // stamped from the user's account currency at placement time.
+  currencyCode: string;
+  currencySymbol: string;
   status: BetStatus;
   placedAt: string;
   settledAt?: string;
@@ -210,9 +221,9 @@ function seed(): Store {
       { id: "u5", name: "Kelechi Nwosu", username: "kelechi.n", email: "kelechi.n@email.com", phone: "+234 807 887 1129", passwordHash: demoHash, registeredAt: iso(14), status: "Pending Verification", country: "Nigeria", currencyCode: "NGN", currencySymbol: "₦" },
     ],
     transactions: [
-      { id: "TXN-10001", userId: DEMO_USER_ID, type: "Deposit", amount: 50000, status: "Successful", reference: "DEP-A1B2C3", method: "Bank Transfer", createdAt: iso(9) },
-      { id: "TXN-10002", userId: DEMO_USER_ID, type: "Deposit", amount: 200000, status: "Successful", reference: "DEP-D4E5F6", method: "Bank Transfer", createdAt: iso(6) },
-      { id: "TXN-10003", userId: DEMO_USER_ID, type: "Withdrawal", amount: -30000, status: "Rejected", reference: "WD-1A2B3C", destination: "GTBank •••• 4821", createdAt: iso(4) },
+      { id: "TXN-10001", userId: DEMO_USER_ID, type: "Deposit", amount: 50000, currencyCode: "NGN", currencySymbol: "₦", status: "Successful", reference: "DEP-A1B2C3", method: "Bank Transfer", createdAt: iso(9) },
+      { id: "TXN-10002", userId: DEMO_USER_ID, type: "Deposit", amount: 200000, currencyCode: "NGN", currencySymbol: "₦", status: "Successful", reference: "DEP-D4E5F6", method: "Bank Transfer", createdAt: iso(6) },
+      { id: "TXN-10003", userId: DEMO_USER_ID, type: "Withdrawal", amount: -30000, currencyCode: "NGN", currencySymbol: "₦", status: "Rejected", reference: "WD-1A2B3C", destination: "GTBank •••• 4821", createdAt: iso(4) },
     ],
     bets: [],
     marketOverrides: {},
@@ -308,6 +319,29 @@ function backfill(parsed: Partial<Store>): Store {
       u.country = c.country;
       u.currencyCode = c.currencyCode;
       u.currencySymbol = c.symbol;
+    }
+  }
+  // Transactions/bets persisted before per-record currency existed have no
+  // currencyCode of their own — the closest honest reconstruction is the
+  // owning user's currency (their account currency hasn't changed in this
+  // demo, so this is exact, not a guess). Anything orphaned falls back to
+  // the platform default rather than a raw hardcoded symbol.
+  const currencyFor = (userId: string) => {
+    const owner = (parsed.users ?? []).find((u) => u.id === userId);
+    return owner ? { code: owner.currencyCode, symbol: owner.currencySymbol } : { code: DEFAULT_CURRENCY.currencyCode, symbol: DEFAULT_CURRENCY.symbol };
+  };
+  for (const t of parsed.transactions ?? []) {
+    if (!t.currencyCode) {
+      const c = currencyFor(t.userId);
+      t.currencyCode = c.code;
+      t.currencySymbol = c.symbol;
+    }
+  }
+  for (const b of parsed.bets ?? []) {
+    if (!b.currencyCode) {
+      const c = currencyFor(b.userId);
+      b.currencyCode = c.code;
+      b.currencySymbol = c.symbol;
     }
   }
   return parsed as Store;
@@ -596,11 +630,14 @@ export async function setSiteSettings(settings: SiteSettings, adminName: string)
 
 export async function requestDeposit(userId: string, amount: number, method: string) {
   const store = await read();
+  const user = store.users.find((u) => u.id === userId);
   const tx: Transaction = {
     id: genId("TXN"),
     userId,
     type: "Deposit",
     amount,
+    currencyCode: user?.currencyCode ?? DEFAULT_CURRENCY.currencyCode,
+    currencySymbol: user?.currencySymbol ?? DEFAULT_CURRENCY.symbol,
     status: "Pending",
     reference: genRef("DEP"),
     method,
@@ -608,14 +645,13 @@ export async function requestDeposit(userId: string, amount: number, method: str
   };
   store.transactions.unshift(tx);
   await write(store);
-  const user = store.users.find((u) => u.id === userId);
   await addAudit({
     actor: user?.name ?? userId,
     action: "Requested deposit — awaiting bank transfer confirmation",
     target: user?.name ?? userId,
     category: "Deposits",
     reference: tx.reference,
-    next: `status: pending, amount: ₦${amount.toFixed(2)}`,
+    next: `status: pending, amount: ${money(amount, tx.currencySymbol)}`,
   });
   return tx;
 }
@@ -624,11 +660,14 @@ export async function requestWithdrawal(userId: string, amount: number, destinat
   const { available } = await getBalances(userId);
   if (amount > available) throw new Error("Insufficient available balance");
   const store = await read();
+  const user = store.users.find((u) => u.id === userId);
   const tx: Transaction = {
     id: genId("TXN"),
     userId,
     type: "Withdrawal",
     amount: -amount,
+    currencyCode: user?.currencyCode ?? DEFAULT_CURRENCY.currencyCode,
+    currencySymbol: user?.currencySymbol ?? DEFAULT_CURRENCY.symbol,
     status: "Pending",
     reference: genRef("WD"),
     destination,
@@ -636,13 +675,12 @@ export async function requestWithdrawal(userId: string, amount: number, destinat
   };
   store.transactions.unshift(tx);
   await write(store);
-  const user = store.users.find((u) => u.id === userId);
   await addAudit({
     actor: user?.name ?? userId,
     action: "Requested withdrawal",
     target: user?.name ?? userId,
     category: "Withdrawals",
-    next: "status: pending",
+    next: `status: pending, amount: ${money(amount, tx.currencySymbol)}`,
     reference: tx.reference,
   });
   return tx;
@@ -667,7 +705,7 @@ export async function adminReviewTransaction(txId: string, decision: "approve" |
     reference: tx.reference,
   });
   const approved = decision === "approve";
-  const amountLabel = `₦${Math.abs(tx.amount).toFixed(2)}`;
+  const amountLabel = money(Math.abs(tx.amount), tx.currencySymbol);
   await pushNotification(
     tx.userId,
     tx.type === "Deposit"
@@ -815,6 +853,9 @@ export async function placeBet(userId: string, selections: Selection[], stake: n
 
   const totalOdds = round2(selections.reduce((acc, s) => acc * s.odds, 1));
   const potentialPayout = round2(totalOdds * stake);
+  const user = store.users.find((u) => u.id === userId);
+  const currencyCode = user?.currencyCode ?? DEFAULT_CURRENCY.currencyCode;
+  const currencySymbol = user?.currencySymbol ?? DEFAULT_CURRENCY.symbol;
   const bet: Bet = {
     id: genId("BET"),
     userId,
@@ -822,6 +863,8 @@ export async function placeBet(userId: string, selections: Selection[], stake: n
     stake,
     totalOdds,
     potentialPayout,
+    currencyCode,
+    currencySymbol,
     status: "Pending",
     placedAt: new Date().toISOString(),
   };
@@ -832,6 +875,8 @@ export async function placeBet(userId: string, selections: Selection[], stake: n
     userId,
     type: "Bet Stake",
     amount: -stake,
+    currencyCode,
+    currencySymbol,
     status: "Successful",
     reference: bet.id,
     createdAt: new Date().toISOString(),
@@ -839,13 +884,12 @@ export async function placeBet(userId: string, selections: Selection[], stake: n
   store.transactions.unshift(stakeTx);
   await write(store);
 
-  const user = store.users.find((u) => u.id === userId);
   await addAudit({
     actor: user?.name ?? userId,
     action: `Placed bet (${selections.length} selection${selections.length > 1 ? "s" : ""})`,
     target: selections.map((s) => s.matchLabel).join(", "),
     category: "Bets",
-    next: `stake: ₦${stake.toFixed(2)}, odds: ${totalOdds.toFixed(2)}`,
+    next: `stake: ${money(stake, currencySymbol)}, odds: ${totalOdds.toFixed(2)}`,
     reference: bet.id,
   });
 
@@ -902,6 +946,8 @@ export async function settleFinishedBets(actor = "System"): Promise<{ settled: n
         userId: bet.userId,
         type: "Bet Payout",
         amount: bet.potentialPayout,
+        currencyCode: bet.currencyCode,
+        currencySymbol: bet.currencySymbol,
         status: "Successful",
         reference: bet.id,
         createdAt: new Date().toISOString(),
@@ -915,7 +961,7 @@ export async function settleFinishedBets(actor = "System"): Promise<{ settled: n
       target: bet.selections.map((s) => s.matchLabel).join(", "),
       category: "Settlement",
       previous: "status: pending",
-      next: won ? `status: won, payout: ₦${bet.potentialPayout.toFixed(2)}` : "status: lost",
+      next: won ? `status: won, payout: ${money(bet.potentialPayout, bet.currencySymbol)}` : "status: lost",
       reference: bet.id,
     });
 
@@ -923,7 +969,9 @@ export async function settleFinishedBets(actor = "System"): Promise<{ settled: n
     pushNotificationToStore(
       store,
       bet.userId,
-      won ? `Your bet on ${matchLabel} won — ₦${bet.potentialPayout.toFixed(2)} added to your balance.` : `Your bet on ${matchLabel} didn't come in this time.`,
+      won
+        ? `Your bet on ${matchLabel} won — ${money(bet.potentialPayout, bet.currencySymbol)} added to your balance.`
+        : `Your bet on ${matchLabel} didn't come in this time.`,
       "Bets",
       "/account?tab=history"
     );

@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 
 export type SelectionInput = {
   matchId: string;
@@ -37,7 +38,7 @@ export function selectionKey(matchId: string, pick: string) {
   return `${matchId}:${pick}`;
 }
 
-export function BetslipProvider({ children, currencySymbol = "₦" }: { children: React.ReactNode; currencySymbol?: string }) {
+export function BetslipProvider({ children, currencySymbol = DEFAULT_CURRENCY.symbol }: { children: React.ReactNode; currencySymbol?: string }) {
   const router = useRouter();
   const [selections, setSelections] = useState<Record<string, SelectionInput>>({});
   const [stake, setStake] = useState("25");

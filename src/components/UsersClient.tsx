@@ -103,9 +103,9 @@ export function UsersClient({ users }: { users: EnrichedUser[] }) {
                   <td className="px-3.5 py-3">
                     <StatusBadge status={u.status} />
                   </td>
-                  <td className="nums px-3.5 py-3 text-[12.5px] font-bold whitespace-nowrap">{money(u.balance)}</td>
-                  <td className="nums px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{money(u.deposits)}</td>
-                  <td className="nums px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{money(u.withdrawals)}</td>
+                  <td className="nums px-3.5 py-3 text-[12.5px] font-bold whitespace-nowrap">{money(u.balance, u.currencySymbol)}</td>
+                  <td className="nums px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{money(u.deposits, u.currencySymbol)}</td>
+                  <td className="nums px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{money(u.withdrawals, u.currencySymbol)}</td>
                   <td className="nums px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{u.betsCount}</td>
                 </tr>
               ))}
@@ -146,9 +146,9 @@ export function UsersClient({ users }: { users: EnrichedUser[] }) {
               </Section>
 
               <Section title="Wallet">
-                <Stat label="Balance" value={money(active.balance)} />
-                <Stat label="Total Deposits" value={money(active.deposits)} />
-                <Stat label="Total Withdrawals" value={money(active.withdrawals)} />
+                <Stat label="Balance" value={money(active.balance, active.currencySymbol)} />
+                <Stat label="Total Deposits" value={money(active.deposits, active.currencySymbol)} />
+                <Stat label="Total Withdrawals" value={money(active.withdrawals, active.currencySymbol)} />
                 <Stat label="Total Bets" value={String(active.betsCount)} />
               </Section>
 
@@ -158,7 +158,7 @@ export function UsersClient({ users }: { users: EnrichedUser[] }) {
                 {active.transactions.map((t) => (
                   <div key={t.id} className="flex items-center justify-between py-2 border-t border-border-subtle">
                     <span className="text-xs">{t.type}</span>
-                    <span className={`nums text-xs font-bold ${t.amount < 0 ? "text-text" : "text-positive"}`}>{signedMoney(t.amount)}</span>
+                    <span className={`nums text-xs font-bold ${t.amount < 0 ? "text-text" : "text-positive"}`}>{signedMoney(t.amount, t.currencySymbol)}</span>
                   </div>
                 ))}
               </div>

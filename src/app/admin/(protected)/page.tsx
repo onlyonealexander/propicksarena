@@ -2,6 +2,7 @@ import Link from "next/link";
 import { platformStats, listAudit } from "@/lib/store";
 import { getAllMatches } from "@/lib/sportsdata";
 import { money, relativeTime, dateTime } from "@/lib/format";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 
 export default async function AdminDashboardPage() {
   const stats = await platformStats();
@@ -26,11 +27,11 @@ export default async function AdminDashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
           <Kpi label="Total Users" value={stats.totalUsers.toLocaleString()} />
           <Kpi label="Active Users" value={stats.activeUsers.toLocaleString()} />
-          <Kpi label="Revenue (net)" value={money(stats.revenue)} tone="accent" />
+          <Kpi label="Revenue (net)" value={money(stats.revenue, DEFAULT_CURRENCY.symbol)} tone="accent" />
           <Kpi label="System Alerts" value={stats.pendingWithdrawals.length > 5 ? "1 Active" : "0 Active"} tone={stats.pendingWithdrawals.length > 5 ? "negative" : undefined} />
 
-          <Kpi label="Total Deposits" value={money(stats.totalDeposits)} />
-          <Kpi label="Total Withdrawals" value={money(stats.totalWithdrawals)} />
+          <Kpi label="Total Deposits" value={money(stats.totalDeposits, DEFAULT_CURRENCY.symbol)} />
+          <Kpi label="Total Withdrawals" value={money(stats.totalWithdrawals, DEFAULT_CURRENCY.symbol)} />
           <Kpi label="Pending Withdrawals" value={String(stats.pendingWithdrawals.length)} tone="warning" />
           <Kpi label="Pending Deposits" value={String(stats.pendingDeposits.length)} tone="warning" />
 
@@ -39,6 +40,10 @@ export default async function AdminDashboardPage() {
           <Kpi label="Settled Bets" value={String(stats.settledBets)} />
           <Kpi label="Tracked Fixtures" value={matches.length.toLocaleString()} />
         </div>
+        <span className="-mt-2 text-[11px] text-text-tertiary">
+          Revenue and totals above are blended across every account&rsquo;s currency and shown in the platform&rsquo;s
+          reporting currency ({DEFAULT_CURRENCY.currencyCode}) — individual transactions below always show their own currency.
+        </span>
 
         <div className="grid lg:grid-cols-[1.4fr_1fr] gap-4">
           <div className="flex flex-col gap-4 p-5 rounded-2xl bg-surface border border-border-subtle">
@@ -109,7 +114,7 @@ export default async function AdminDashboardPage() {
                 <tr key={t.id} className="border-t border-border-subtle">
                   <td className="px-5 py-3 text-[12.5px] font-semibold">{t.type}</td>
                   <td className="nums px-5 py-3 text-[11.5px] text-text-tertiary">{t.reference}</td>
-                  <td className="nums px-5 py-3 text-[12.5px] font-bold">{money(Math.abs(t.amount))}</td>
+                  <td className="nums px-5 py-3 text-[12.5px] font-bold">{money(Math.abs(t.amount), t.currencySymbol)}</td>
                   <td className="px-5 py-3 text-[12px] text-text-tertiary">{dateTime(t.createdAt)}</td>
                   <td className="px-5 py-3">
                     <span className="inline-flex px-2.5 py-1 rounded-full bg-warning/15 text-warning text-[10.5px] font-bold">Pending</span>

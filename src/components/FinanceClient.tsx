@@ -72,7 +72,7 @@ export function FinanceClient({ transactions, methods }: { transactions: Row[]; 
               <>
                 <Td bold>{t.userName}</Td>
                 <Td nums bold>
-                  {money(Math.abs(t.amount))}
+                  {money(Math.abs(t.amount), t.currencySymbol)}
                 </Td>
                 <Td muted>{t.destination}</Td>
                 <Td nums small muted>
@@ -107,7 +107,7 @@ export function FinanceClient({ transactions, methods }: { transactions: Row[]; 
               <>
                 <Td bold>{t.userName}</Td>
                 <Td nums bold>
-                  {money(t.amount)}
+                  {money(t.amount, t.currencySymbol)}
                 </Td>
                 <Td muted>{t.method}</Td>
                 <Td nums small muted>
@@ -146,7 +146,7 @@ export function FinanceClient({ transactions, methods }: { transactions: Row[]; 
                 <Td bold>{t.userName}</Td>
                 <Td muted>{t.type}</Td>
                 <Td nums bold>
-                  {money(t.amount)}
+                  {money(t.amount, t.currencySymbol)}
                 </Td>
                 <td className="px-3.5 py-3">
                   <StatusBadge status={t.status} />

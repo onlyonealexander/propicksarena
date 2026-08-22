@@ -23,22 +23,22 @@ export default async function WalletPage() {
         <p className="m-0 text-[13.5px] text-text-tertiary">Manage your deposits, withdrawals and transaction history.</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="flex flex-col gap-2 p-5 rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.03_195)] to-[oklch(0.19_0.02_250)] border border-border-subtle">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="flex flex-col gap-2 p-3.5 sm:p-5 rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.03_195)] to-[oklch(0.19_0.02_250)] border border-border-subtle min-w-0">
           <span className="text-[11.5px] text-text-secondary font-semibold">Available Balance</span>
-          <span className="nums text-2xl font-bold">{money(balances.available, symbol)}</span>
+          <span className="nums text-lg sm:text-2xl font-bold truncate">{money(balances.available, symbol)}</span>
         </div>
-        <div className="flex flex-col gap-2 p-5 rounded-2xl bg-surface border border-border-subtle">
+        <div className="flex flex-col gap-2 p-3.5 sm:p-5 rounded-2xl bg-surface border border-border-subtle min-w-0">
           <span className="text-[11.5px] text-text-tertiary font-semibold">Pending Balance</span>
-          <span className="nums text-[22px] font-bold text-warning">{money(balances.pending, symbol)}</span>
+          <span className="nums text-lg sm:text-[22px] font-bold text-warning truncate">{money(balances.pending, symbol)}</span>
         </div>
-        <div className="flex flex-col gap-2 p-5 rounded-2xl bg-surface border border-border-subtle">
+        <div className="flex flex-col gap-2 p-3.5 sm:p-5 rounded-2xl bg-surface border border-border-subtle min-w-0">
           <span className="text-[11.5px] text-text-tertiary font-semibold">Total Deposits</span>
-          <span className="nums text-[22px] font-bold">{money(deposits, symbol)}</span>
+          <span className="nums text-lg sm:text-[22px] font-bold truncate">{money(deposits, symbol)}</span>
         </div>
-        <div className="flex flex-col gap-2 p-5 rounded-2xl bg-surface border border-border-subtle">
+        <div className="flex flex-col gap-2 p-3.5 sm:p-5 rounded-2xl bg-surface border border-border-subtle min-w-0">
           <span className="text-[11.5px] text-text-tertiary font-semibold">Total Withdrawals</span>
-          <span className="nums text-[22px] font-bold">{money(withdrawals, symbol)}</span>
+          <span className="nums text-lg sm:text-[22px] font-bold truncate">{money(withdrawals, symbol)}</span>
         </div>
       </div>
 

@@ -238,20 +238,20 @@ function Testimonials() {
   const items = [
     {
       quote: "I deposit, place my bets on the small leagues nobody else covers, and I can actually see my transaction history line up. Feels like a real operation, not a mystery box.",
-      name: "Chidi O.",
-      meta: "Lagos · Member since 2025",
+      name: "Faisal A.",
+      meta: "Riyadh, Saudi Arabia · Since 2025",
       rating: 5,
     },
     {
       quote: "USDT deposit was the fastest I've used anywhere — sent it, pasted the reference, balance updated in minutes. No back-and-forth needed.",
-      name: "Amina Y.",
-      meta: "Abuja · Member since 2024",
+      name: "Marcus T.",
+      meta: "Los Angeles, USA · Since 2024",
       rating: 5,
     },
     {
       quote: "Bets on real 3. Liga matches settle themselves off the actual final score. First platform I've used where that's actually true.",
-      name: "Emeka T.",
-      meta: "Port Harcourt · Member since 2026",
+      name: "Sofía R.",
+      meta: "Mexico City, Mexico · Since 2026",
       rating: 4,
     },
   ];
@@ -264,17 +264,20 @@ function Testimonials() {
             "radial-gradient(circle at 10% 10%, oklch(0.7 0.15 145 / 0.06), transparent 45%), radial-gradient(circle at 90% 90%, oklch(0.7 0.15 145 / 0.05), transparent 45%)",
         }}
       />
-      <div className="flex flex-col items-center gap-2 text-center">
+      <div className="flex flex-col items-center gap-2 text-center px-2">
         <span className="inline-flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/15 text-accent text-[11px] font-bold uppercase tracking-wide">
-          Trusted by members
+          Demo Testimonials
         </span>
         <h2 className="m-0 font-display text-[22px] sm:text-[26px] font-bold">What members are saying</h2>
+        <p className="m-0 text-text-tertiary text-[11.5px] max-w-md">
+          Illustrative examples for demonstration purposes, not verified customer reviews.
+        </p>
       </div>
-      <div className="grid sm:grid-cols-3 gap-5">
+      <div className="grid sm:grid-cols-3 gap-4 sm:gap-5">
         {items.map((t) => (
           <div
             key={t.name}
-            className="flex flex-col gap-4 p-6 rounded-2xl bg-surface border border-border-subtle hover:border-accent/40 transition-colors"
+            className="flex flex-col gap-4 p-5 sm:p-6 rounded-2xl bg-surface border border-border-subtle hover:border-accent/40 transition-colors"
           >
             <div className="flex items-center justify-between">
               <svg width="26" height="20" viewBox="0 0 24 18" fill="none">
