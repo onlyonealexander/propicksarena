@@ -27,11 +27,12 @@ function initialsOf(name: string) {
 async function OddsRow({ m, size = "md" }: { m: NormalizedMatch; size?: "sm" | "md" }) {
   const marketStatus = await getMarketStatus(m.id);
   const disabled = marketStatus !== "Open" || m.status === "finished";
+  const league = `Football: ${m.leagueName}`;
   return (
     <div className="flex gap-1.5">
-      <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} pick="1" label={m.home} odds={m.odds.home} disabled={disabled} size={size} />
-      <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} pick="X" label="Draw" odds={m.odds.draw} disabled={disabled} size={size} />
-      <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} pick="2" label={m.away} odds={m.odds.away} disabled={disabled} size={size} />
+      <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} league={league} pick="1" label={m.home} odds={m.odds.home} disabled={disabled} size={size} />
+      <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} league={league} pick="X" label="Draw" odds={m.odds.draw} disabled={disabled} size={size} />
+      <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} league={league} pick="2" label={m.away} odds={m.odds.away} disabled={disabled} size={size} />
     </div>
   );
 }

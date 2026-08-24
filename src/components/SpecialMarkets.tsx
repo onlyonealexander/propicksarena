@@ -23,7 +23,17 @@ export async function SpecialMarkets() {
             </div>
             <div className="flex flex-wrap gap-2">
               {m.options.map((o) => (
-                <OddsButton key={o.pick} matchId={m.id} matchLabel={m.title} market={m.sport} pick={o.pick} label={o.label} odds={o.odds} grow={false} />
+                <OddsButton
+                  key={o.pick}
+                  matchId={m.id}
+                  matchLabel={m.title}
+                  league={m.sport}
+                  market="Special Market"
+                  pick={o.pick}
+                  label={o.label}
+                  odds={o.odds}
+                  grow={false}
+                />
               ))}
             </div>
           </div>

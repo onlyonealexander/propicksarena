@@ -5,6 +5,7 @@ import { kickoffLabel } from "@/lib/format";
 
 export async function LiveSportSection({ sportKey }: { sportKey: string }) {
   const league = LIVE_LEAGUES[sportKey];
+  const leagueLabel = `${sportKey.charAt(0).toUpperCase()}${sportKey.slice(1)}: ${league.leagueName}`;
   const fixtures = await getLiveFixtures(sportKey);
   const live = fixtures.filter((f) => f.status === "live");
   const upcoming = fixtures.filter((f) => f.status === "scheduled").sort((a, b) => a.kickoff.localeCompare(b.kickoff));
@@ -35,7 +36,7 @@ export async function LiveSportSection({ sportKey }: { sportKey: string }) {
         ) : (
           <div className="flex gap-3.5 overflow-x-auto no-scrollbar">
             {live.map((f) => (
-              <FixtureCard key={f.id} f={f} live />
+              <FixtureCard key={f.id} f={f} leagueLabel={leagueLabel} live />
             ))}
           </div>
         )}
@@ -46,7 +47,7 @@ export async function LiveSportSection({ sportKey }: { sportKey: string }) {
         {upcoming.length === 0 && <p className="text-text-tertiary text-[13.5px]">No upcoming fixtures in the feed right now — try again shortly.</p>}
         <div className="flex flex-col rounded-2xl border border-border-subtle overflow-hidden bg-surface">
           {upcoming.slice(0, 12).map((f) => (
-            <FixtureRow key={f.id} f={f} />
+            <FixtureRow key={f.id} f={f} leagueLabel={leagueLabel} />
           ))}
         </div>
       </section>
@@ -75,18 +76,18 @@ export async function LiveSportSection({ sportKey }: { sportKey: string }) {
   );
 }
 
-async function OddsPair({ f }: { f: Awaited<ReturnType<typeof getLiveFixtures>>[number] }) {
+async function OddsPair({ f, leagueLabel }: { f: Awaited<ReturnType<typeof getLiveFixtures>>[number]; leagueLabel: string }) {
   const marketStatus = await getMarketStatus(f.id);
   const disabled = marketStatus !== "Open" || f.status === "finished";
   return (
     <div className="flex gap-1.5">
-      <OddsButton matchId={f.id} matchLabel={`${f.home} vs ${f.away}`} market="Moneyline" pick="1" label={f.home} odds={f.odds.home} disabled={disabled} />
-      <OddsButton matchId={f.id} matchLabel={`${f.home} vs ${f.away}`} market="Moneyline" pick="2" label={f.away} odds={f.odds.away} disabled={disabled} />
+      <OddsButton matchId={f.id} matchLabel={`${f.home} vs ${f.away}`} league={leagueLabel} market="Moneyline" pick="1" label={f.home} odds={f.odds.home} disabled={disabled} />
+      <OddsButton matchId={f.id} matchLabel={`${f.home} vs ${f.away}`} league={leagueLabel} market="Moneyline" pick="2" label={f.away} odds={f.odds.away} disabled={disabled} />
     </div>
   );
 }
 
-async function FixtureCard({ f, live }: { f: Awaited<ReturnType<typeof getLiveFixtures>>[number]; live?: boolean }) {
+async function FixtureCard({ f, leagueLabel, live }: { f: Awaited<ReturnType<typeof getLiveFixtures>>[number]; leagueLabel: string; live?: boolean }) {
   return (
     <div className="flex-shrink-0 w-[280px] flex flex-col gap-3 p-4 rounded-2xl bg-surface border border-border-subtle">
       <div className="flex items-center justify-between">
@@ -108,12 +109,12 @@ async function FixtureCard({ f, live }: { f: Awaited<ReturnType<typeof getLiveFi
           <span className="nums text-[14px] font-bold">{f.awayScore ?? "-"}</span>
         </div>
       </div>
-      <OddsPair f={f} />
+      <OddsPair f={f} leagueLabel={leagueLabel} />
     </div>
   );
 }
 
-async function FixtureRow({ f }: { f: Awaited<ReturnType<typeof getLiveFixtures>>[number] }) {
+async function FixtureRow({ f, leagueLabel }: { f: Awaited<ReturnType<typeof getLiveFixtures>>[number]; leagueLabel: string }) {
   const { date, time } = kickoffLabel(f.kickoff);
   return (
     <div className="grid grid-cols-[76px_1fr] sm:grid-cols-[84px_1fr_180px] items-center gap-4 px-[18px] py-3.5 border-t border-border-subtle first:border-t-0">
@@ -142,7 +143,7 @@ async function FixtureRow({ f }: { f: Awaited<ReturnType<typeof getLiveFixtures>
         </div>
       </div>
       <div className="col-span-2 sm:col-span-1">
-        <OddsPair f={f} />
+        <OddsPair f={f} leagueLabel={leagueLabel} />
       </div>
     </div>
   );

@@ -13,17 +13,20 @@ export default async function AdminDashboardPage() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-[18px] border-b border-border-subtle sticky top-0 bg-bg/90 backdrop-blur-md z-10">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3.5 sm:py-[18px] border-b border-border-subtle sticky top-0 bg-bg/90 backdrop-blur-md z-10">
         <div>
           <h1 className="m-0 font-display text-xl font-bold">Dashboard</h1>
           <span className="text-xs text-text-tertiary">Overview of platform activity, live from the real fixture feed</span>
         </div>
-        <Link href="/admin/matches" className="px-4 py-2.5 rounded-lg border border-border bg-surface text-[12.5px] font-semibold text-text-secondary">
+        <Link
+          href="/admin/matches"
+          className="self-start sm:self-auto flex-shrink-0 px-4 py-2.5 rounded-lg border border-border bg-surface text-[12.5px] font-semibold text-text-secondary whitespace-nowrap"
+        >
           {liveCount} live now &middot; {finishedToday} finished today
         </Link>
       </header>
 
-      <div className="flex flex-col gap-6 px-8 py-7 pb-12">
+      <div className="flex flex-col gap-6 px-4 sm:px-6 lg:px-8 py-5 sm:py-7 pb-12">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
           <Kpi label="Total Users" value={stats.totalUsers.toLocaleString()} />
           <Kpi label="Active Users" value={stats.activeUsers.toLocaleString()} />
@@ -99,37 +102,39 @@ export default async function AdminDashboardPage() {
               Open Finance
             </Link>
           </div>
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                {["Type", "Reference", "Amount", "Requested", "Status"].map((h) => (
-                  <th key={h} className="text-left text-[10.5px] font-bold text-text-tertiary uppercase tracking-wide px-5 pb-2.5 pt-3.5 whitespace-nowrap">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[...stats.pendingWithdrawals, ...stats.pendingDeposits].slice(0, 6).map((t) => (
-                <tr key={t.id} className="border-t border-border-subtle">
-                  <td className="px-5 py-3 text-[12.5px] font-semibold">{t.type}</td>
-                  <td className="nums px-5 py-3 text-[11.5px] text-text-tertiary">{t.reference}</td>
-                  <td className="nums px-5 py-3 text-[12.5px] font-bold">{money(Math.abs(t.amount), t.currencySymbol)}</td>
-                  <td className="px-5 py-3 text-[12px] text-text-tertiary">{dateTime(t.createdAt)}</td>
-                  <td className="px-5 py-3">
-                    <span className="inline-flex px-2.5 py-1 rounded-full bg-warning/15 text-warning text-[10.5px] font-bold">Pending</span>
-                  </td>
-                </tr>
-              ))}
-              {stats.pendingWithdrawals.length + stats.pendingDeposits.length === 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
                 <tr>
-                  <td colSpan={5} className="px-5 py-8 text-center text-text-tertiary text-[13px]">
-                    Nothing pending review.
-                  </td>
+                  {["Type", "Reference", "Amount", "Requested", "Status"].map((h) => (
+                    <th key={h} className="text-left text-[10.5px] font-bold text-text-tertiary uppercase tracking-wide px-5 pb-2.5 pt-3.5 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {[...stats.pendingWithdrawals, ...stats.pendingDeposits].slice(0, 6).map((t) => (
+                  <tr key={t.id} className="border-t border-border-subtle">
+                    <td className="px-5 py-3 text-[12.5px] font-semibold whitespace-nowrap">{t.type}</td>
+                    <td className="nums px-5 py-3 text-[11.5px] text-text-tertiary whitespace-nowrap">{t.reference}</td>
+                    <td className="nums px-5 py-3 text-[12.5px] font-bold whitespace-nowrap">{money(Math.abs(t.amount), t.currencySymbol)}</td>
+                    <td className="px-5 py-3 text-[12px] text-text-tertiary whitespace-nowrap">{dateTime(t.createdAt)}</td>
+                    <td className="px-5 py-3">
+                      <span className="inline-flex px-2.5 py-1 rounded-full bg-warning/15 text-warning text-[10.5px] font-bold whitespace-nowrap">Pending</span>
+                    </td>
+                  </tr>
+                ))}
+                {stats.pendingWithdrawals.length + stats.pendingDeposits.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-8 text-center text-text-tertiary text-[13px]">
+                      Nothing pending review.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </>

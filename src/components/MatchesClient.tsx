@@ -43,7 +43,7 @@ export function MatchesClient({ groups, overrides }: { groups: Group[]; override
 
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-4 border-b border-border-subtle">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 border-b border-border-subtle">
         <div>
           <h1 className="m-0 font-display text-xl font-bold">Matches &amp; Markets</h1>
           <span className="text-xs text-text-tertiary">Live fixture feed &middot; suspend/close markets &middot; settle off real results</span>
@@ -51,13 +51,13 @@ export function MatchesClient({ groups, overrides }: { groups: Group[]; override
         <button
           onClick={syncAndSettle}
           disabled={syncing}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-accent-fg font-bold text-[12.5px] disabled:opacity-60"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-accent-fg font-bold text-[12.5px] disabled:opacity-60 flex-shrink-0"
         >
           {syncing ? "Syncing…" : "Sync & Settle Finished Bets"}
         </button>
       </header>
 
-      <div className="flex flex-col gap-4 px-8 py-6 max-w-[1000px]">
+      <div className="flex flex-col gap-4 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 max-w-[1000px]">
         {syncMessage && <div className="px-4 py-3 rounded-lg bg-accent/10 text-[12.5px] text-text-secondary">{syncMessage}</div>}
 
         {groups.map(({ league, matches }) => (
@@ -85,18 +85,18 @@ export function MatchesClient({ groups, overrides }: { groups: Group[]; override
                   const status = overrides[m.id] ?? "Open";
                   const { date, time } = kickoffLabel(m.kickoff);
                   return (
-                    <div key={m.id} className="flex flex-col gap-2 px-[18px] py-3.5 border-t border-border-subtle first:border-t-0">
-                      <div className="flex items-center gap-3">
-                        <span className="text-[12.5px] font-bold flex-1">
+                    <div key={m.id} className="flex flex-col gap-2 px-3.5 sm:px-[18px] py-3.5 border-t border-border-subtle first:border-t-0">
+                      <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5">
+                        <span className="text-[12.5px] font-bold flex-1 min-w-[140px]">
                           {m.home} vs {m.away}
                         </span>
-                        <span className="text-[11px] text-text-tertiary">
+                        <span className="text-[11px] text-text-tertiary whitespace-nowrap">
                           {m.status === "live" ? `LIVE ${m.minute}'` : m.status === "finished" ? `FT ${m.homeScore}-${m.awayScore}` : `${date} ${time}`}
                         </span>
                         <StatusBadge status={m.status === "live" ? "Live" : m.status === "finished" ? "Finished" : "Scheduled"} />
                       </div>
-                      <div className="flex items-center gap-2.5 pl-0">
-                        <span className="text-[11.5px] text-text-tertiary flex-1">{MARKET_LABEL}</span>
+                      <div className="flex items-center flex-wrap gap-2 sm:gap-2.5 pl-0">
+                        <span className="text-[11.5px] text-text-tertiary flex-1 min-w-[100px]">{MARKET_LABEL}</span>
                         <span className="min-w-[70px] flex justify-center">
                           <StatusBadge status={status} minWidth />
                         </span>

@@ -9,6 +9,7 @@ import { money } from "@/lib/format";
 export type SelectionInput = {
   matchId: string;
   matchLabel: string;
+  league: string;
   market: string;
   pick: string;
   label: string;
@@ -94,6 +95,7 @@ export function BetslipProvider({ children, currencySymbol = DEFAULT_CURRENCY.sy
           selections: list.map((s) => ({
             matchId: s.matchId,
             matchLabel: s.matchLabel,
+            league: s.league,
             market: s.market,
             pick: s.pick,
             label: s.label,

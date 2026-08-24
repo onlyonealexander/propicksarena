@@ -27,7 +27,7 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
   }
 
   return (
-    <div className="min-h-screen w-full grid grid-cols-[240px_1fr] bg-bg">
+    <div className="min-h-screen w-full flex flex-col lg:grid lg:grid-cols-[240px_1fr] bg-bg">
       <AdminSidebar adminName={admin.name} role={ROLE_LABEL[admin.role] ?? admin.role} logoutAction={logout} />
       <div className="flex flex-col min-w-0">{children}</div>
     </div>

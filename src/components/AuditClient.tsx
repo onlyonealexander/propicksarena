@@ -38,13 +38,13 @@ export function AuditClient({ entries }: { entries: AuditEntry[] }) {
 
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-4 border-b border-border-subtle">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 border-b border-border-subtle">
         <div>
           <h1 className="m-0 font-display text-xl font-bold">Audit Log</h1>
           <span className="text-xs text-text-tertiary">Complete, immutable record of platform activity</span>
         </div>
-        <div className="flex items-center gap-2.5 px-3.5 rounded-lg border border-border bg-surface w-[300px]">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="2" strokeLinecap="round">
+        <div className="flex items-center gap-2.5 px-3.5 rounded-lg border border-border bg-surface w-full sm:w-[300px]">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="2" strokeLinecap="round" className="flex-shrink-0">
             <circle cx="11" cy="11" r="7" />
             <path d="M21 21l-4.3-4.3" />
           </svg>
@@ -52,12 +52,12 @@ export function AuditClient({ entries }: { entries: AuditEntry[] }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search actor, action, target, reference…"
-            className="flex-1 border-none bg-transparent outline-none text-[13px] py-2.5"
+            className="flex-1 min-w-0 border-none bg-transparent outline-none text-[13px] py-2.5"
           />
         </div>
       </header>
 
-      <div className="flex flex-col gap-4 px-8 py-6">
+      <div className="flex flex-col gap-4 px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {CATEGORIES.map((c) => (
             <button
@@ -79,19 +79,21 @@ export function AuditClient({ entries }: { entries: AuditEntry[] }) {
               <div key={e.id} className="flex flex-col border-t border-border-subtle first:border-t-0">
                 <button
                   onClick={() => setExpanded((p) => ({ ...p, [e.id]: !p[e.id] }))}
-                  className="grid grid-cols-[150px_150px_1fr_90px] items-center gap-3.5 px-[18px] py-3.5 text-left"
+                  className="flex flex-col sm:grid sm:grid-cols-[150px_150px_1fr_90px] items-start sm:items-center gap-1 sm:gap-3.5 px-4 sm:px-[18px] py-3.5 text-left"
                 >
-                  <span className="nums text-[11.5px] text-text-tertiary">{dateTime(e.timestamp)}</span>
-                  <span className="text-xs font-bold truncate">{e.actor}</span>
-                  <span className="text-[12.5px] text-text-secondary truncate">
+                  <span className="nums text-[11px] sm:text-[11.5px] text-text-tertiary">{dateTime(e.timestamp)}</span>
+                  <span className="text-xs font-bold truncate max-w-full">{e.actor}</span>
+                  <span className="text-[12.5px] text-text-secondary break-words sm:truncate">
                     {e.action} &middot; <span className="text-text font-semibold">{e.target}</span>
                   </span>
-                  <span className={`justify-self-end inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold ${CATEGORY_STYLE[e.category] ?? ""}`}>
+                  <span
+                    className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold sm:justify-self-end ${CATEGORY_STYLE[e.category] ?? ""}`}
+                  >
                     {e.category}
                   </span>
                 </button>
                 {open && (
-                  <div className="grid sm:grid-cols-3 gap-3.5 px-[18px] pb-[18px]">
+                  <div className="grid sm:grid-cols-3 gap-3.5 px-4 sm:px-[18px] pb-[18px]">
                     <Box label="Previous State" value={e.previous ?? "—"} tone="negative" />
                     <Box label="New State" value={e.next ?? "—"} tone="positive" />
                     <Box label="Reference" value={e.reference ?? "—"} />

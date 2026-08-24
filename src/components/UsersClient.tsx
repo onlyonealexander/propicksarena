@@ -48,13 +48,13 @@ export function UsersClient({ users }: { users: EnrichedUser[] }) {
 
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-4 border-b border-border-subtle">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 border-b border-border-subtle">
         <div>
           <h1 className="m-0 font-display text-xl font-bold">Users</h1>
           <span className="text-xs text-text-tertiary">{users.length} registered accounts</span>
         </div>
-        <div className="flex items-center gap-2.5 px-3.5 rounded-lg border border-border bg-surface w-[280px]">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="2" strokeLinecap="round">
+        <div className="flex items-center gap-2.5 px-3.5 rounded-lg border border-border bg-surface w-full sm:w-[280px]">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="2" strokeLinecap="round" className="flex-shrink-0">
             <circle cx="11" cy="11" r="7" />
             <path d="M21 21l-4.3-4.3" />
           </svg>
@@ -62,13 +62,13 @@ export function UsersClient({ users }: { users: EnrichedUser[] }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search name, email, user ID…"
-            className="flex-1 border-none bg-transparent outline-none text-[13px] py-2.5"
+            className="flex-1 min-w-0 border-none bg-transparent outline-none text-[13px] py-2.5"
           />
         </div>
       </header>
 
-      <div className="flex flex-col gap-4 px-8 py-6">
-        <div className="flex gap-2">
+      <div className="flex flex-col gap-4 px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {FILTERS.map((f) => (
             <button
               key={f}
@@ -116,8 +116,8 @@ export function UsersClient({ users }: { users: EnrichedUser[] }) {
 
       {active && (
         <div className="fixed inset-0 bg-black/50 flex justify-end z-50" onClick={() => setOpenId(null)}>
-          <div className="w-[460px] h-full bg-surface border-l border-border flex flex-col overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
+          <div className="w-full sm:w-[460px] max-w-full h-full bg-surface border-l border-border flex flex-col overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 sm:px-6 py-5 border-b border-border-subtle">
               <div className="flex items-center gap-3">
                 <div className="w-[42px] h-[42px] rounded-full bg-gradient-to-br from-accent to-[oklch(0.6_0.15_230)] flex items-center justify-center text-sm font-bold text-accent-fg font-display">
                   {initials(active.name)}
@@ -134,7 +134,7 @@ export function UsersClient({ users }: { users: EnrichedUser[] }) {
               </button>
             </div>
 
-            <div className="flex flex-col gap-6 px-6 py-6">
+            <div className="flex flex-col gap-6 px-4 sm:px-6 py-6">
               <StatusBadge status={active.status} />
 
               <Section title="Account Information">

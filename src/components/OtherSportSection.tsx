@@ -21,7 +21,7 @@ export async function OtherSportSection({ sportId }: { sportId: string }) {
         <h2 className="m-0 font-display text-[17px] font-bold">Upcoming {label} Markets</h2>
         <div className="flex flex-col gap-3">
           {scheduled.map((f) => (
-            <FixtureCard key={f.id} f={f} />
+            <FixtureCard key={f.id} f={f} sportLabel={label} />
           ))}
           {scheduled.length === 0 && <p className="text-text-tertiary text-[13.5px]">No upcoming {label.toLowerCase()} fixtures right now.</p>}
         </div>
@@ -45,10 +45,11 @@ export async function OtherSportSection({ sportId }: { sportId: string }) {
   );
 }
 
-async function FixtureCard({ f }: { f: SportFixture }) {
+async function FixtureCard({ f, sportLabel }: { f: SportFixture; sportLabel: string }) {
   const marketStatus = await getMarketStatus(f.id);
   const disabled = marketStatus !== "Open";
   const wide = f.options.length > 3;
+  const league = `${sportLabel}: ${f.competition}`;
   return (
     <div className="flex flex-col gap-3 p-[18px] rounded-2xl bg-surface border border-border-subtle">
       <div className="flex items-center justify-between gap-3">
@@ -64,7 +65,7 @@ async function FixtureCard({ f }: { f: SportFixture }) {
             key={o.pick}
             matchId={f.id}
             matchLabel={f.title}
-            market={f.competition}
+            league={league}
             pick={o.pick}
             label={o.label}
             odds={o.odds}

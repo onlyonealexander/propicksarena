@@ -35,14 +35,14 @@ export function FinanceClient({ transactions, methods }: { transactions: Row[]; 
 
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-4 border-b border-border-subtle">
+      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 border-b border-border-subtle">
         <div>
           <h1 className="m-0 font-display text-xl font-bold">Finance</h1>
           <span className="text-xs text-text-tertiary">Review and process deposits &amp; withdrawals</span>
         </div>
       </header>
 
-      <div className="flex flex-col gap-5 px-8 py-6">
+      <div className="flex flex-col gap-5 px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
           <Stat label="Pending Withdrawals" value={String(pendingWd.length)} tone="warning" />
           <Stat label="Pending Deposits" value={String(pendingDp.length)} tone="warning" />

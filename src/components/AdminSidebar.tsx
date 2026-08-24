@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
@@ -99,52 +100,116 @@ const NAV = [
   },
 ];
 
+function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  return (
+    <nav className="flex flex-col gap-0.5">
+      {NAV.map((item) => {
+        const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] ${
+              active ? "bg-surface text-text font-bold" : "text-text-secondary font-semibold"
+            }`}
+          >
+            <span className={active ? "text-accent" : ""}>{item.icon}</span>
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function AccountFooter({ adminName, role, logoutAction }: { adminName: string; role: string; logoutAction: () => void }) {
+  return (
+    <form action={logoutAction} className="mt-auto flex items-center gap-2.5 p-3 rounded-2xl bg-surface border border-border-subtle">
+      <div className="w-[34px] h-[34px] rounded-full bg-gradient-to-br from-accent to-[oklch(0.6_0.15_230)] flex items-center justify-center text-xs font-bold text-accent-fg font-display flex-shrink-0">
+        {initials(adminName)}
+      </div>
+      <div className="flex flex-col gap-px min-w-0 flex-1">
+        <span className="text-xs font-bold truncate">{adminName}</span>
+        <span className="text-[10.5px] text-text-tertiary truncate">{role}</span>
+      </div>
+      <button type="submit" title="Sign out" className="text-text-tertiary p-1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="M16 17l5-5-5-5M21 12H9" />
+        </svg>
+      </button>
+    </form>
+  );
+}
+
 export function AdminSidebar({ adminName, role, logoutAction }: { adminName: string; role: string; logoutAction: () => void }) {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  // Close the mobile drawer automatically whenever the route changes.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  const currentLabel = NAV.find((item) => (item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href)))?.label ?? "Admin";
 
   return (
-    <aside className="bg-sidebar border-r border-border-subtle flex flex-col p-3.5 gap-6 sticky top-0 h-screen">
-      <div className="flex items-center gap-2.5 px-2">
-        <Logo size={24} />
-        <div className="flex flex-col leading-tight">
-          <span className="font-display font-bold text-[14.5px]">PROPICKS</span>
-          <span className="text-[9.5px] text-text-tertiary font-bold tracking-wide">ARENA OPS</span>
-        </div>
-      </div>
-
-      <nav className="flex flex-col gap-0.5">
-        {NAV.map((item) => {
-          const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] ${
-                active ? "bg-surface text-text font-bold" : "text-text-secondary font-semibold"
-              }`}
-            >
-              <span className={active ? "text-accent" : ""}>{item.icon}</span>
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <form action={logoutAction} className="mt-auto flex items-center gap-2.5 p-3 rounded-2xl bg-surface border border-border-subtle">
-        <div className="w-[34px] h-[34px] rounded-full bg-gradient-to-br from-accent to-[oklch(0.6_0.15_230)] flex items-center justify-center text-xs font-bold text-accent-fg font-display flex-shrink-0">
-          {initials(adminName)}
-        </div>
-        <div className="flex flex-col gap-px min-w-0 flex-1">
-          <span className="text-xs font-bold truncate">{adminName}</span>
-          <span className="text-[10.5px] text-text-tertiary truncate">{role}</span>
-        </div>
-        <button type="submit" title="Sign out" className="text-text-tertiary p-1">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <path d="M16 17l5-5-5-5M21 12H9" />
+    <>
+      {/* mobile top bar */}
+      <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-sidebar border-b border-border-subtle">
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Open admin menu"
+          className="flex items-center justify-center w-9 h-9 rounded-lg border border-border-subtle bg-surface text-text-secondary flex-shrink-0"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18" />
           </svg>
         </button>
-      </form>
-    </aside>
+        <Logo size={22} />
+        <span className="text-[13.5px] font-bold truncate">{currentLabel}</span>
+      </header>
+
+      {/* mobile drawer */}
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/60" onClick={() => setOpen(false)}>
+          <aside
+            className="w-[260px] max-w-[82vw] h-full bg-sidebar border-r border-border-subtle flex flex-col p-3.5 gap-6 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2.5">
+                <Logo size={24} />
+                <div className="flex flex-col leading-tight">
+                  <span className="font-display font-bold text-[14.5px]">PROPICKS</span>
+                  <span className="text-[9.5px] text-text-tertiary font-bold tracking-wide">ARENA OPS</span>
+                </div>
+              </div>
+              <button onClick={() => setOpen(false)} aria-label="Close admin menu" className="text-text-tertiary p-1.5">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <NavList pathname={pathname} onNavigate={() => setOpen(false)} />
+            <AccountFooter adminName={adminName} role={role} logoutAction={logoutAction} />
+          </aside>
+        </div>
+      )}
+
+      {/* desktop sidebar */}
+      <aside className="hidden lg:flex bg-sidebar border-r border-border-subtle flex-col p-3.5 gap-6 sticky top-0 h-screen">
+        <div className="flex items-center gap-2.5 px-2">
+          <Logo size={24} />
+          <div className="flex flex-col leading-tight">
+            <span className="font-display font-bold text-[14.5px]">PROPICKS</span>
+            <span className="text-[9.5px] text-text-tertiary font-bold tracking-wide">ARENA OPS</span>
+          </div>
+        </div>
+        <NavList pathname={pathname} />
+        <AccountFooter adminName={adminName} role={role} logoutAction={logoutAction} />
+      </aside>
+    </>
   );
 }

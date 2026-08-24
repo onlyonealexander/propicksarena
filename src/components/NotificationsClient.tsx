@@ -50,14 +50,14 @@ export function NotificationsClient({ users, preselectUserId }: { users: User[];
 
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-4 border-b border-border-subtle">
+      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 border-b border-border-subtle">
         <div>
           <h1 className="m-0 font-display text-xl font-bold">Notifications</h1>
           <span className="text-xs text-text-tertiary">Send a message straight to one user&rsquo;s notification bell, or everyone at once</span>
         </div>
       </header>
 
-      <div className="grid md:grid-cols-[1fr_320px] gap-5 px-8 py-6 max-w-[900px]">
+      <div className="grid md:grid-cols-[1fr_320px] gap-5 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 max-w-[900px]">
         <div className="flex flex-col gap-4 p-6 rounded-2xl bg-surface border border-border-subtle h-fit">
           <div className="flex gap-2">
             <button

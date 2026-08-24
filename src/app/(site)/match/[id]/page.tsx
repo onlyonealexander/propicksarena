@@ -68,9 +68,9 @@ export default async function MatchPage({ params }: PageProps<"/match/[id]">) {
             <span className="text-[11px] text-text-tertiary">Full Time</span>
           </div>
           <div className="grid grid-cols-3 gap-2.5">
-            <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} pick="1" label={m.home} odds={m.odds.home} disabled={disabled} />
-            <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} pick="X" label="Draw" odds={m.odds.draw} disabled={disabled} />
-            <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} pick="2" label={m.away} odds={m.odds.away} disabled={disabled} />
+            <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} league={`Football: ${m.leagueName}`} pick="1" label={m.home} odds={m.odds.home} disabled={disabled} />
+            <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} league={`Football: ${m.leagueName}`} pick="X" label="Draw" odds={m.odds.draw} disabled={disabled} />
+            <OddsButton matchId={m.id} matchLabel={`${m.home} vs ${m.away}`} league={`Football: ${m.leagueName}`} pick="2" label={m.away} odds={m.odds.away} disabled={disabled} />
           </div>
           {marketStatus !== "Open" && (
             <span className="text-[11.5px] text-warning font-semibold">This market is currently {marketStatus.toLowerCase()} by the trading team.</span>

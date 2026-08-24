@@ -5,6 +5,7 @@ import { useBetslip, selectionKey } from "./BetslipProvider";
 export function OddsButton({
   matchId,
   matchLabel,
+  league,
   market = "Match Winner",
   pick,
   label,
@@ -15,6 +16,7 @@ export function OddsButton({
 }: {
   matchId: string;
   matchLabel: string;
+  league: string;
   market?: string;
   pick: string;
   label: string;
@@ -34,7 +36,7 @@ export function OddsButton({
     <button
       type="button"
       disabled={disabled}
-      onClick={() => toggle(key, { matchId, matchLabel, market, pick, label, odds })}
+      onClick={() => toggle(key, { matchId, matchLabel, league, market, pick, label, odds })}
       className={`${grow ? "flex-1" : ""} flex flex-col items-center justify-center gap-0.5 rounded-lg border ${pad} transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
         selected
           ? "border-accent bg-accent/15 text-accent"

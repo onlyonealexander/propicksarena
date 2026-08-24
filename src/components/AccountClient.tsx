@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { User, Transaction, Bet } from "@/lib/store";
 import { StatusBadge } from "./StatusBadge";
+import { BetCard } from "./BetCard";
 import { money, signedMoney, dateTime, initials } from "@/lib/format";
 
 type Section = "Overview" | "History" | "Transactions" | "Profile" | "Security";
@@ -61,14 +62,15 @@ const NAV: { key: Section; label: string; icon: React.ReactNode }[] = [
 ];
 
 const BET_FILTERS = ["All", "Pending", "Won", "Lost", "Cancelled", "Void", "Refunded"] as const;
-
-function payout(b: Bet): { label: string; color: string } {
-  const symbol = b.currencySymbol;
-  if (b.status === "Won") return { label: money(b.potentialPayout, symbol), color: "text-positive" };
-  if (b.status === "Lost") return { label: `-${money(b.stake, symbol)}`, color: "text-negative" };
-  if (b.status === "Pending") return { label: `Potential ${money(b.potentialPayout, symbol)}`, color: "text-text-secondary" };
-  return { label: money(b.stake, symbol), color: "text-text-tertiary" };
-}
+const BET_FILTER_LABEL: Record<(typeof BET_FILTERS)[number], string> = {
+  All: "All",
+  Pending: "Processing",
+  Won: "Won",
+  Lost: "Lost",
+  Cancelled: "Cancelled",
+  Void: "Void",
+  Refunded: "Refunded",
+};
 
 export function AccountClient({
   user,
@@ -197,23 +199,17 @@ export function AccountClient({
                   View all
                 </button>
               </div>
-              <div className="rounded-2xl border border-border-subtle bg-surface overflow-hidden">
-                {bets.slice(0, 5).map((b) => {
-                  const p = payout(b);
-                  return (
-                    <div key={b.id} className="flex items-center gap-4 px-[18px] py-3.5 border-t border-border-subtle first:border-t-0">
-                      <StatusBadge status={b.status} />
-                      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                        <span className="text-[12.5px] font-semibold truncate">{b.selections.map((s) => s.matchLabel).join(", ")}</span>
-                        <span className="text-[11px] text-text-tertiary truncate">{b.selections.map((s) => s.label).join(" + ")}</span>
-                      </div>
-                      <span className="nums text-xs text-text-tertiary flex-shrink-0 hidden sm:inline">Stake {money(b.stake, b.currencySymbol)}</span>
-                      <span className={`nums text-[13px] font-bold flex-shrink-0 ${p.color}`}>{p.label}</span>
-                    </div>
-                  );
-                })}
-                {bets.length === 0 && <div className="px-[18px] py-8 text-center text-text-tertiary text-[13px]">No bets placed yet — head to the homepage to get started.</div>}
-              </div>
+              {bets.length === 0 ? (
+                <div className="rounded-2xl border border-border-subtle bg-surface px-[18px] py-8 text-center text-text-tertiary text-[13px]">
+                  No bets placed yet — head to the homepage to get started.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {bets.slice(0, 5).map((b) => (
+                    <BetCard key={b.id} bet={b} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -229,7 +225,7 @@ export function AccountClient({
                     betFilter === f ? "border-accent bg-accent/15 text-accent font-bold" : "border-border-subtle text-text-secondary font-semibold"
                   }`}
                 >
-                  {f}
+                  {BET_FILTER_LABEL[f]}
                 </button>
               ))}
             </div>
@@ -238,66 +234,11 @@ export function AccountClient({
                 No bets match this filter.
               </div>
             ) : (
-              <>
-                {/* mobile: card list */}
-                <div className="flex flex-col gap-2.5 sm:hidden">
-                  {filteredBets.map((b) => {
-                    const p = payout(b);
-                    return (
-                      <div key={b.id} className="flex flex-col gap-2 p-3.5 rounded-xl border border-border-subtle bg-surface">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className="text-[12.5px] font-semibold break-words">{b.selections.map((s) => s.matchLabel).join(", ")}</span>
-                            <span className="text-[11px] text-text-tertiary break-words">{b.selections.map((s) => s.label).join(" + ")}</span>
-                          </div>
-                          <StatusBadge status={b.status} />
-                        </div>
-                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-border-subtle">
-                          <span className="text-[11px] text-text-tertiary">
-                            Stake {money(b.stake, b.currencySymbol)} &middot; Odds {b.totalOdds.toFixed(2)}
-                          </span>
-                          <span className={`nums text-[13px] font-bold flex-shrink-0 ${p.color}`}>{p.label}</span>
-                        </div>
-                        <span className="text-[10.5px] text-text-tertiary">{dateTime(b.placedAt)}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* desktop: table */}
-                <div className="hidden sm:block rounded-2xl border border-border-subtle bg-surface overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr>
-                        {["Bet ID", "Match", "Selection", "Stake", "Odds", "Payout", "Status", "Date"].map((h) => (
-                          <th key={h} className="text-left text-[10.5px] font-bold text-text-tertiary uppercase tracking-wide px-3.5 pb-2.5 whitespace-nowrap">
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredBets.map((b) => {
-                        const p = payout(b);
-                        return (
-                          <tr key={b.id} className="border-t border-border-subtle">
-                            <td className="nums px-3.5 py-3 text-[12px] text-text-secondary whitespace-nowrap">{b.id}</td>
-                            <td className="px-3.5 py-3 text-[12.5px] font-semibold whitespace-nowrap">{b.selections.map((s) => s.matchLabel).join(", ")}</td>
-                            <td className="px-3.5 py-3 text-[12.5px] text-text-secondary whitespace-nowrap">{b.selections.map((s) => s.label).join(" + ")}</td>
-                            <td className="nums px-3.5 py-3 text-[12.5px] whitespace-nowrap">{money(b.stake, b.currencySymbol)}</td>
-                            <td className="nums px-3.5 py-3 text-[12.5px] whitespace-nowrap">{b.totalOdds.toFixed(2)}</td>
-                            <td className={`nums px-3.5 py-3 text-[12.5px] font-bold whitespace-nowrap ${p.color}`}>{p.label}</td>
-                            <td className="px-3.5 py-3">
-                              <StatusBadge status={b.status} />
-                            </td>
-                            <td className="px-3.5 py-3 text-[12px] text-text-tertiary whitespace-nowrap">{dateTime(b.placedAt)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </>
+              <div className="flex flex-col gap-2.5">
+                {filteredBets.map((b) => (
+                  <BetCard key={b.id} bet={b} />
+                ))}
+              </div>
             )}
           </div>
         )}

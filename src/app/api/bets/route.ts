@@ -14,6 +14,7 @@ export async function POST(request: Request) {
   const selections: Selection[] = body.selections.map((s: Selection) => ({
     matchId: String(s.matchId),
     matchLabel: String(s.matchLabel),
+    league: String(s.league ?? "Sports"),
     market: String(s.market ?? "Match Winner"),
     pick: String(s.pick),
     label: String(s.label),

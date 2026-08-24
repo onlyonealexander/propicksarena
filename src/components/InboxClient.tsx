@@ -30,15 +30,15 @@ export function InboxClient({ messages }: { messages: SupportMessage[] }) {
 
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-4 border-b border-border-subtle">
+      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 border-b border-border-subtle">
         <div>
           <h1 className="m-0 font-display text-xl font-bold">Support Inbox</h1>
           <span className="text-xs text-text-tertiary">{messages.filter((m) => m.status === "New").length} unread of {messages.length}</span>
         </div>
       </header>
 
-      <div className="grid grid-cols-[340px_1fr] px-8 py-6 gap-5 items-start">
-        <div className="flex flex-col rounded-2xl border border-border-subtle bg-surface overflow-hidden max-h-[75vh] overflow-y-auto">
+      <div className="flex flex-col lg:grid lg:grid-cols-[340px_1fr] px-4 sm:px-6 lg:px-8 py-5 sm:py-6 gap-5 items-start">
+        <div className="w-full flex flex-col rounded-2xl border border-border-subtle bg-surface overflow-hidden max-h-[280px] lg:max-h-[75vh] overflow-y-auto">
           {messages.map((m) => (
             <button
               key={m.id}
@@ -59,10 +59,10 @@ export function InboxClient({ messages }: { messages: SupportMessage[] }) {
         </div>
 
         {active ? (
-          <div className="flex flex-col gap-5 rounded-2xl border border-border-subtle bg-surface p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-[16px] font-bold">{active.subject}</span>
+          <div className="w-full flex flex-col gap-5 rounded-2xl border border-border-subtle bg-surface p-4 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex flex-col gap-1 min-w-0">
+                <span className="text-[16px] font-bold break-words">{active.subject}</span>
                 <span className="text-[12.5px] text-text-secondary">
                   {active.name} &middot; {active.email}
                 </span>
@@ -71,7 +71,7 @@ export function InboxClient({ messages }: { messages: SupportMessage[] }) {
               <StatusBadge status={active.status} />
             </div>
             <p className="m-0 text-[13.5px] text-text-secondary leading-relaxed whitespace-pre-wrap">{active.message}</p>
-            <div className="flex gap-2.5 pt-3 border-t border-border-subtle">
+            <div className="flex flex-wrap gap-2.5 pt-3 border-t border-border-subtle">
               <button
                 disabled={busy}
                 onClick={() => mark(active.id, "Replied")}

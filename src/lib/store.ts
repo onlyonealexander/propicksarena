@@ -70,10 +70,17 @@ export type User = {
 export type Selection = {
   matchId: string;
   matchLabel: string;
+  // "{Sport}: {League/Competition}" — captured at bet placement so bet
+  // history can show it even after the live fixture/market data is gone.
+  league: string;
   market: string;
   pick: string;
   label: string;
   odds: number;
+  // Per-leg outcome, filled in by settleFinishedBets() once that specific
+  // leg's real result is known — independent of the bet's overall status,
+  // so a multi-selection bet can show which legs actually won/lost.
+  result?: "Won" | "Lost";
 };
 
 export type BetStatus = "Pending" | "Won" | "Lost" | "Cancelled" | "Void" | "Refunded";
@@ -372,6 +379,11 @@ function backfill(parsed: Partial<Store>): Store {
       const fallback = seedMethodsByKey.get(m.key);
       m.feeType = fallback?.feeType ?? "percent";
       m.feeValue = fallback?.feeValue ?? 1.5;
+    }
+  }
+  for (const b of parsed.bets ?? []) {
+    for (const s of b.selections) {
+      if (s.league === undefined) s.league = s.market || "Sports";
     }
   }
   return parsed as Store;
@@ -992,6 +1004,9 @@ export async function settleFinishedBets(actor = "System"): Promise<{ settled: n
     const won = legResults.every(Boolean);
     bet.status = won ? "Won" : "Lost";
     bet.settledAt = new Date().toISOString();
+    bet.selections.forEach((s, i) => {
+      s.result = legResults[i] ? "Won" : "Lost";
+    });
     settledCount++;
 
     if (won) {

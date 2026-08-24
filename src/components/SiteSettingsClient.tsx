@@ -33,14 +33,14 @@ export function SiteSettingsClient({ settings }: { settings: SiteSettings }) {
 
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-4 border-b border-border-subtle">
+      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 border-b border-border-subtle">
         <div>
           <h1 className="m-0 font-display text-xl font-bold">Site Settings</h1>
           <span className="text-xs text-text-tertiary">Contact details and social links shown across the public site</span>
         </div>
       </header>
 
-      <div className="flex flex-col gap-6 px-8 py-6 max-w-2xl">
+      <div className="flex flex-col gap-6 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 max-w-2xl">
         <div className="flex flex-col gap-3.5 p-6 rounded-2xl bg-surface border border-border-subtle">
           <span className="text-[13px] font-bold">Support Contact</span>
           <div className="grid sm:grid-cols-2 gap-3">

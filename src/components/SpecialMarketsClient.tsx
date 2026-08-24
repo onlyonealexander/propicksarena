@@ -88,17 +88,17 @@ export function SpecialMarketsClient({ markets }: { markets: CustomMarket[] }) {
 
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-4 border-b border-border-subtle">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 border-b border-border-subtle">
         <div>
           <h1 className="m-0 font-display text-xl font-bold">Special Markets</h1>
           <span className="text-xs text-text-tertiary">Create custom bets on anything — settle with the real, verified outcome once it's known</span>
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="px-4 py-2.5 rounded-lg bg-accent text-accent-fg font-bold text-[12.5px]">
+        <button onClick={() => setShowForm((v) => !v)} className="self-start sm:self-auto flex-shrink-0 px-4 py-2.5 rounded-lg bg-accent text-accent-fg font-bold text-[12.5px]">
           {showForm ? "Cancel" : "+ New Special Market"}
         </button>
       </header>
 
-      <div className="flex flex-col gap-5 px-8 py-6 max-w-[900px]">
+      <div className="flex flex-col gap-5 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 max-w-[900px]">
         {showForm && (
           <div className="flex flex-col gap-3.5 p-6 rounded-2xl bg-surface border border-border-subtle">
             <div className="grid sm:grid-cols-2 gap-3">
